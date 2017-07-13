@@ -1,23 +1,10 @@
 #include <stdio.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#include "libxml/parser.h"
+#include "libxml/tree.h"
+#include "view.h"
 #include <hpdf.h>
 
 #ifdef LIBXML_TREE_ENABLED
-
-static void
-print_element_names(xmlNode * a_node)
-{
-	xmlNode *cur_node = NULL;
-
-	for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
-		if (cur_node->type == XML_ELEMENT_NODE) {
-			printf("node type: Element, name: %s\n", cur_node->name);
-		}
-
-		print_element_names(cur_node->children);
-	}
-}
 
 void usage() {
 	printf("Usage: nick [file]\n");
@@ -43,11 +30,12 @@ int main(int argc, char **argv) {
 
 	/*Get the root element node */
 	root_element = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root_element->name, (const xmlChar *) "document")) {
-		fprintf(stderr,"Document of the wrong type, your root node must be a 'document' object!");
+	if (xmlStrcmp(root_element->name, (const xmlChar *) "Document")) {
+		fprintf(stderr,"Document of the wrong type, your root node must be a 'Document' object!\n");
 	}
 	else {
-	    verify_document(root_element);
+		// root_element is DOCUMENT, first child is a page, loop through here
+		build_viewtree(root_element->children);
 	}
 	xmlFreeDoc(doc);
 	xmlCleanupParser();

@@ -1,17 +1,17 @@
 CC=gcc
 
 CXXFLAGS= -std=c99
-ODIR = ../build
-BINDIR = ../bin
-SRCDIR = ./
-INCDIR = ../headers
+ODIR = build
+BINDIR = bin
+SRCDIR = src
+INCDIR = headers
 CFLAGS=-I $(INCDIR) -lxml2 -lhpdf -g 
-CFLAGSNOLINK = -I $(INCDIR) -g
+CFLAGSNOLINK = -I $(INCDIR) -lxml2 -lhpdf -g 
 
-_DEPS = view.h
+_DEPS = view.h error.h verify.h
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
 
-_OBJ = main.o view.o
+_OBJ = main.o view.o error.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 

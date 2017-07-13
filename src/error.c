@@ -1,4 +1,6 @@
 #include "error.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 // Implementation for Error Module
 

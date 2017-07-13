@@ -1,6 +1,7 @@
 #ifndef VERIFY_H
 #define VERIFY_H
 
+#include <libxml/tree.h>
 // view.h: interface for a View object as well as a ViewGroup object
 //   Provides options to build a ViewTree from a XML document, as well as
 //   freeing the ViewTree
