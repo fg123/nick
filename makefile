@@ -5,13 +5,13 @@ ODIR = build
 BINDIR = bin
 SRCDIR = src
 INCDIR = headers
-CFLAGS=-I $(INCDIR) -lxml2 -lhpdf -g 
+CFLAGS=-I $(INCDIR) -lxml2 -lhpdf -lz -lm -g 
 CFLAGSNOLINK = -I $(INCDIR) -lxml2 -lhpdf -g 
 
-_DEPS = view.h error.h verify.h
+_DEPS = view.h error.h verify.h util.h layout.h pdf.h draw.h
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
 
-_OBJ = main.o view.o error.o 
+_OBJ = main.o view.o error.o layout.o util.o draw.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
