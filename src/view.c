@@ -6,6 +6,7 @@
 #include "util.h"
 #include <stdbool.h>
 #include <string.h>
+#include "templates.h"
 
 // view.c implements the building of the ViewTree from a PageNode
 
@@ -14,12 +15,13 @@
 #define XML_LINEAR_LAYOUT 			(const xmlChar*) "LinearLayout"
 #define XML_TEXT_VIEW 				(const xmlChar*) "TextView"
 #define XML_IMAGE_VIEW 				(const xmlChar*) "ImageView"
+#define XML_CONTENT 				(const xmlChar*) "Content"
 
 #define XML_LAYOUT_WIDTH 			(const xmlChar*) "width"
 #define XML_LAYOUT_HEIGHT 			(const xmlChar*) "height"
 
-#define XML_LAYOUT_SIZE_MATCH_PARENT (const xmlChar*)"match_parent"
-#define XML_LAYOUT_SIZE_WRAP_CONTENT (const xmlChar*)"wrap_content"
+#define XML_LAYOUT_SIZE_AUTO 		(const xmlChar*) "auto"
+#define XML_LAYOUT_SIZE_FILL		(const xmlChar*) "fill"
 
 #define XML_LAYOUT_MARGIN 			(const xmlChar*) "margin"
 #define XML_LAYOUT_MARGIN_TOP 		(const xmlChar*) "margin-top"
@@ -31,6 +33,15 @@
 #define XML_LAYOUT_PADDING_BOTTOM 	(const xmlChar*) "padding-bottom"
 #define XML_LAYOUT_PADDING_LEFT 	(const xmlChar*) "padding-left"
 #define XML_LAYOUT_PADDING_RIGHT 	(const xmlChar*) "padding-right"
+#define XML_GRAVITY 				(const xmlChar*) "gravity"
+
+#define XML_GRAVITY_LEFT 			(const xmlChar*) "left"
+#define XML_GRAVITY_RIGHT 			(const xmlChar*) "right"
+#define XML_GRAVITY_BOTTOM 			(const xmlChar*) "bottom"
+#define XML_GRAVITY_TOP	 			(const xmlChar*) "top"
+#define XML_GRAVITY_CENTER 			(const xmlChar*) "center"
+#define XML_GRAVITY_CENTER_H		(const xmlChar*) "center-horizontal"
+#define XML_GRAVITY_CENTER_V		(const xmlChar*) "center-vertical"
 
 // XML Properties
 #define XML_ORIENTATION				(const xmlChar*) "orientation"
@@ -54,8 +65,8 @@
 static int indentation = 0;
 
 // Forward Declarations
-view *build_view(xmlNode*);
-view *build_viewgroup(xmlNode*);
+view *build_view(xmlNode*, xmlNode*);
+view *build_viewgroup(xmlNode*, xmlNode*);
 
 static bool is_viewgroup(const xmlNode* node) {
 	return xmlStrEqual(node->name, XML_FRAME_LAYOUT)
@@ -65,6 +76,113 @@ static bool is_viewgroup(const xmlNode* node) {
 static bool is_view(const xmlNode* node) {
 	return xmlStrEqual(node->name, XML_TEXT_VIEW)
 	|| xmlStrEqual(node->name, XML_IMAGE_VIEW);
+}
+
+void fill_in_substitution(char** str_p, int start, int end, 
+	char* replace_with) {
+	// Example: "Hello $testing whee" replace "Felix"
+	//           start-^       ^-end
+	// o_l = 19
+	// n_l = 5
+	// start = 6
+	// end = 14
+	int sub_length = end - start;
+	int o_length = strlen(*str_p);
+	int n_length = strlen(replace_with);
+	(*str_p)[start] = 0;
+	int final_length = o_length - sub_length + n_length;
+	char* old = *str_p;
+	*str_p = malloc((final_length + 1) * sizeof(char));
+	(*str_p)[0] = 0;
+	strcat(*str_p, old);
+	strcat(*str_p, replace_with);
+	strcat(*str_p, &old[end]);
+	free(old);
+}
+
+void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
+	if (!node) return;
+	for (xmlAttr* attr = node->properties; attr; attr = attr->next) {
+		char* value = xmlGetProp(node, attr->name);
+		if (!value) {
+			fprintf(stderr, "Internal Error: %s attr not found...\n", 
+				attr->name);
+			exit(1);
+		}
+		for (int i = 0; value[i]; i++) {
+			if (value[i] == '$' && (i == 0 || value[i - 1] != '\\')) {
+				// Perform Substitution
+				int start = i;
+				while (value[i] != ' ' && value[i] != 0) {
+					i++;
+				}
+				int end = i;
+				char old = value[end];
+				// Make a fake string pointer ending at the name of the var
+				value[end] = 0;
+				char* replace_with = xmlGetProp(template_base, &value[start + 1]);
+				value[end] = old;
+				printf("Replacing %s with: %s\n", value, replace_with);
+				if (replace_with) {
+					i = start + strlen(replace_with);
+					fill_in_substitution(&value, start, end, replace_with);
+					free(replace_with);
+				}
+				else {
+					i = start - 1;
+					fill_in_substitution(&value, start, end, "");
+				}
+			}
+		}
+		xmlSetProp(node, attr->name, value);
+		free(value);
+	}
+	for (xmlNode* curr = node->children; curr; curr = curr->next) {
+		if (curr->type == XML_ELEMENT_NODE && 
+				xmlStrEqual(curr->name, XML_CONTENT)) {
+			xmlNode* content_node_p = curr;
+			// Link in each content from template_base
+			xmlNode* child = template_base->children;
+			while (child) {
+				if (child->type == XML_ELEMENT_NODE) {
+					xmlNode* child_dup = xmlCopyNode(child, 1);
+					curr = xmlAddNextSibling(curr, child_dup);
+					//xmlFreeNode(child_dup);
+				}
+				child = child->next;
+			}
+			xmlUnlinkNode(content_node_p);
+			xmlFreeNode(content_node_p);
+		}
+	}
+}
+
+gravity_type get_gravity_type(char* string, int line) {
+	string = trim(string);
+	if (strcmp(string, XML_GRAVITY_LEFT) == 0) {
+		return 0;
+	}
+	else if (strcmp(string, XML_GRAVITY_RIGHT) == 0) {
+		return GRAVITY_RIGHT;
+	}
+	else if (strcmp(string, XML_GRAVITY_TOP) == 0) {
+		return 0;
+	}
+	else if (strcmp(string, XML_GRAVITY_BOTTOM) == 0) {
+		return GRAVITY_BOTTOM;
+	}
+	else if (strcmp(string, XML_GRAVITY_CENTER) == 0) {
+		return GRAVITY_CENTER;
+	}
+	else if (strcmp(string, XML_GRAVITY_CENTER_H) == 0) {
+		return GRAVITY_CENTER_HORIZONTAL;
+	}
+	else if (strcmp(string, XML_GRAVITY_CENTER_V) == 0) {
+		return GRAVITY_CENTER_VERTICAL;
+	}
+	else {
+		error(line, INVALID_GRAVITY, string);
+	}
 }
 
 view_properties get_frame_layout_properties(const xmlNode* node, 
@@ -92,7 +210,7 @@ view_properties get_text_view_properties(const xmlNode* node) {
 	}
 	if (text) {
 		free(properties.text_view.text);
-		properties.text_view.text = formatSpecialCharacters(text);
+		properties.text_view.text = format_special_characters(text);
 		free(text);
 	}
 	if (text_style) {
@@ -114,22 +232,13 @@ view_properties get_text_view_properties(const xmlNode* node) {
 		free(text_style);
 	}
 	if (font) {
-		properties.text_view.font = HPDF_GetFont(pdf, font, NULL);
+		properties.text_view.font = 
+			get_font(font, properties.text_view.style, node->line);
 		free(font);
 	}
 	else {
-		if (properties.text_view.style == STYLE_NONE) {
-			properties.text_view.font = HPDF_GetFont(pdf, "Helvetica", NULL);
-		}
-		else if (properties.text_view.style == STYLE_BOLD) {
-			properties.text_view.font = HPDF_GetFont(pdf, "Helvetica-Bold", NULL);
-		}
-		else if (properties.text_view.style == STYLE_ITALIC) {
-			properties.text_view.font = HPDF_GetFont(pdf, "Helvetica-Oblique", NULL);
-		}
-		else {
-			properties.text_view.font = HPDF_GetFont(pdf, "Helvetica-BoldOblique", NULL);
-		}
+		properties.text_view.font = 
+			get_font("Helvetica", properties.text_view.style, node->line);
 	}
 	return properties;
 }
@@ -202,10 +311,11 @@ layout_params get_layout_params(const xmlNode* node) {
 	layout.padding_right = 0;
 	layout.padding_top = 0;
 	layout.padding_bottom = 0;
-	layout.width_type = SIZE_WRAP_CONTENT;
-	layout.height_type = SIZE_WRAP_CONTENT;
+	layout.width_type = SIZE_AUTO;
+	layout.height_type = SIZE_AUTO;
 	layout.x = 0;
 	layout.y = 0;
+	layout.gravity = 0;
 	// Width and Height are Required
 	xmlChar* width = xmlGetProp(node, XML_LAYOUT_WIDTH);
 	xmlChar* height = xmlGetProp(node, XML_LAYOUT_HEIGHT);
@@ -219,13 +329,14 @@ layout_params get_layout_params(const xmlNode* node) {
 	xmlChar* padding_bottom = xmlGetProp(node, XML_LAYOUT_PADDING_BOTTOM);
 	xmlChar* padding_left = xmlGetProp(node, XML_LAYOUT_PADDING_LEFT);
 	xmlChar* padding_right = xmlGetProp(node, XML_LAYOUT_PADDING_RIGHT);
-	
+	xmlChar* gravity = xmlGetProp(node, XML_GRAVITY);
+
 	if (width) {
-		if (xmlStrEqual(width, XML_LAYOUT_SIZE_MATCH_PARENT)) {
-			layout.width_type = SIZE_MATCH_PARENT;
+		if (xmlStrEqual(width, XML_LAYOUT_SIZE_FILL)) {
+			layout.width_type = SIZE_FILL;
 		}
-		else if (xmlStrEqual(width, XML_LAYOUT_SIZE_WRAP_CONTENT)) {
-			layout.width_type = SIZE_WRAP_CONTENT;
+		else if (xmlStrEqual(width, XML_LAYOUT_SIZE_AUTO)) {
+			layout.width_type = SIZE_AUTO;
 		}
 		else {
 			layout.width = atoi(width);
@@ -235,11 +346,11 @@ layout_params get_layout_params(const xmlNode* node) {
 	}
 
 	if (height) {
-		if (xmlStrEqual(height, XML_LAYOUT_SIZE_MATCH_PARENT)) {
-			layout.height_type = SIZE_MATCH_PARENT;
+		if (xmlStrEqual(height, XML_LAYOUT_SIZE_FILL)) {
+			layout.height_type = SIZE_FILL;
 		}
-		else if (xmlStrEqual(height, XML_LAYOUT_SIZE_WRAP_CONTENT)) {
-			layout.height_type = SIZE_WRAP_CONTENT;
+		else if (xmlStrEqual(height, XML_LAYOUT_SIZE_AUTO)) {
+			layout.height_type = SIZE_AUTO;
 		}
 		else {
 			layout.height = atoi(height);
@@ -291,6 +402,19 @@ layout_params get_layout_params(const xmlNode* node) {
 		layout.padding_bottom = atoi(padding_bottom);
 		free(padding_bottom);
 	}
+	if (gravity) {
+		char* token;
+		// Separate by Pipe, will destroy the string
+		token = strtok(gravity, "|");
+		while (token) {			
+		   layout.gravity |= get_gravity_type(token, node->line);
+		   token = strtok(NULL, "|");
+		}
+		free(gravity);
+	}
+	if (!layout.gravity) {
+		layout.gravity = default_gravity;
+	}
 	return layout;
 }
 
@@ -326,44 +450,57 @@ static void print_element_names(xmlNode* a_node) {
 	}
 }
 
-view* build_view(xmlNode* node) {
+view* build_view(xmlNode* node, xmlNode* template_base) {
+	if (template_base) {
+		fill_template_substitutions(node, template_base);
+	}
 	if (is_viewgroup(node)) {
-		return build_viewgroup(node);
+		return build_viewgroup(node, template_base);
 	}
-	if (!is_view(node)) {
-		error(node->line, UNRECOGNIZED_ELEMENT, node->name);
+	if (is_view(node)) {
+		view* new_view = malloc(sizeof(view));
+		new_view->type = get_view_type(node);
+		new_view->layout = get_layout_params(node);
+		// Grab attributes based on type
+		switch (new_view->type) {
+			case TYPE_IMAGE_VIEW:
+				new_view->properties = get_image_view_properties(node);
+				break;
+			case TYPE_TEXT_VIEW:
+				new_view->properties = get_text_view_properties(node);
+				break;
+		}
+		return new_view;
 	}
-	view* new_view = malloc(sizeof(view));
-	new_view->type = get_view_type(node);
-	new_view->layout = get_layout_params(node);
-	// Grab attributes based on type
-	switch (new_view->type) {
-		case TYPE_IMAGE_VIEW:
-			new_view->properties = get_image_view_properties(node);
-			break;
-		case TYPE_TEXT_VIEW:
-			new_view->properties = get_text_view_properties(node);
-			break;
+	if (template_exist(node->name)) {
+		// xmlCopyNode so modifications are built properly
+		xmlNode* new_copy = xmlCopyNode(get_template(node->name, node->line), 1);
+		view* v = build_view(new_copy, node);
+		xmlFreeNode(new_copy);
+		return v;
 	}
-	return new_view;
+	error(node->line, UNRECOGNIZED_ELEMENT, node->name);
+	return NULL;
 }
 
 // Given an XML ViewGroup Node
-view* build_viewgroup(xmlNode* node) {
+view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	viewlist* child_list = NULL;
 	viewlist** head_ptr = &child_list;
 	for (xmlNode* curr_child = node->children; 
 		 curr_child; 
 		 curr_child = curr_child->next) {
 		if (xmlIsBlankNode(curr_child)) continue;
-		if (node->type != XML_ELEMENT_NODE) {
-		    error(node->line, EXPECTED_ELEMENT_IN_VIEWGROUP, node->type);
+		if (curr_child->type == XML_ELEMENT_NODE) {
+			/*error(curr_child->line, EXPECTED_ELEMENT_IN_VIEWGROUP, 
+				curr_child->type);*/
+		
+			viewlist* new_child = malloc(sizeof(viewlist));
+			new_child->elem = build_view(curr_child, template_base);
+			new_child->next = NULL;
+			*head_ptr = new_child;
+			head_ptr = &new_child->next;
 		}
-		viewlist* new_child = malloc(sizeof(viewlist));
-		new_child->elem = build_view(curr_child);
-		new_child->next = NULL;
-		*head_ptr = new_child;
-		head_ptr = &new_child->next;
 	}
 	view* new_view = malloc(sizeof(view));
 	new_view->type = get_view_type(node);
@@ -394,7 +531,7 @@ view* build_page(xmlNode* pagenode) {
 	if (!is_viewgroup(root_child)) {
 		error(pagenode->line, PAGE_MUST_START_VIEWGROUP);
 	}
-	return build_view(root_child);
+	return build_view(root_child, NULL);
 }
 
 void print_indent() {
@@ -445,6 +582,9 @@ void print_layout_params(layout_params layout) {
 	print_indent();
 	printf(GRN "Position: " RESET "%f, %f\n", layout.x, layout.y);
 
+	print_indent();
+	printf(GRN "Gravity: " RESET "0x%08X\n", layout.gravity);
+
 	indentation--;
 }
 
@@ -483,6 +623,13 @@ void print_view(view* tree) {
 			HPDF_Font_GetFontName(tree->properties.text_view.font));
 		print_indent();
 		printf(GRN "Text: " RESET "%s\n", tree->properties.text_view.text);
+		print_indent();
+		printf(GRN "Code: " RESET);
+		char* s = tree->properties.text_view.text;
+		while(*s) {
+			printf("%02x ", (unsigned char) *s++);
+		}
+		printf("\n");
 		print_indent();
 		printf(GRN "Color: " RESET "TBD\n");
 		indentation--;

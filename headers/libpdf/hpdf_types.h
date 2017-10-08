@@ -152,7 +152,7 @@ typedef enum _HPDF_InfoType {
 
 /* PDF-A Types */
 
-typedef enum _HPDF_PDFA_TYPE
+typedef enum _HPDF_PDFA_TYPE 
 {
     HPDF_PDFA_1A = 0,
     HPDF_PDFA_1B = 1
@@ -225,23 +225,6 @@ typedef struct _HPDF_TransMatrix {
     HPDF_REAL   y;
 } HPDF_TransMatrix;
 
-/*---------------------------------------------------------------------------*/
-/*----- HPDF_3DMatrix struct ------------------------------------------------*/
-
-typedef struct _HPDF_3DMatrix {
-    HPDF_REAL   a;
-    HPDF_REAL   b;
-    HPDF_REAL   c;
-    HPDF_REAL   d;
-    HPDF_REAL   e;
-    HPDF_REAL   f;
-    HPDF_REAL   g;
-    HPDF_REAL   h;
-    HPDF_REAL   i;
-    HPDF_REAL   tx;
-    HPDF_REAL   ty;
-    HPDF_REAL   tz;
-} HPDF_3DMatrix;
 
 /*---------------------------------------------------------------------------*/
 
@@ -385,8 +368,7 @@ typedef enum _HPDF_AnnotType {
     HPDF_ANNOT_3D,
     HPDF_ANNOT_SQUIGGLY,
 	HPDF_ANNOT_LINE,
-	HPDF_ANNOT_PROJECTION,
-	HPDF_ANNOT_WIDGET
+	HPDF_ANNOT_PROJECTION
 } HPDF_AnnotType;
 
 
@@ -517,7 +499,7 @@ typedef enum _HPDF_TransitionStyle {
     HPDF_TS_GLITTER_TOP_LEFT_TO_BOTTOM_RIGHT,
     HPDF_TS_REPLACE,
     HPDF_TS_EOF
-} HPDF_TransitionStyle;
+} HPDF_TransitionStyle; 
 
 /*----------------------------------------------------------------------------*/
 

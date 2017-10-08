@@ -34,10 +34,6 @@ HPDF_Annotation_New  (HPDF_MMgr       mmgr,
                       HPDF_AnnotType  type,
                       HPDF_Rect       rect);
 
-HPDF_Annotation
-HPDF_WidgetAnnot_New    (HPDF_MMgr  mmgr,
-                         HPDF_Xref  xref,
-                         HPDF_Rect  rect);
 
 HPDF_Annotation
 HPDF_LinkAnnot_New  (HPDF_MMgr           mmgr,
@@ -57,10 +53,7 @@ HPDF_Annotation
 HPDF_3DAnnot_New  (HPDF_MMgr        mmgr,
                    HPDF_Xref        xref,
                    HPDF_Rect        rect,
-                   HPDF_BOOL        tb,
-                   HPDF_BOOL        np,
-                   HPDF_U3D         u3d,
-                   HPDF_Image       ap);
+                   HPDF_U3D u3d);
 
 HPDF_Annotation
 HPDF_MarkupAnnot_New    (HPDF_MMgr        mmgr,

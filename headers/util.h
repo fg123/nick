@@ -1,10 +1,23 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-char* formatSpecialCharacters(char* src);
+#include <stdbool.h>
+
+#define SETTINGS_COUNT 1
+
+char* format_special_characters(char* src);
+void insert_newline(char** str, int position);
 char* strdup(char* src);
 int min(int a, int b);
 int max(int a, int b);
+char* trim(char* str);
+
+typedef enum {
+	SETTINGS_SHOW_BOUNDING_BOX = 0
+} settings_flags; 
+
+void set_settings_flag(settings_flags flag);
+bool get_settings_flag(settings_flags flag);
 
 // Colors
 #ifdef _WIN32

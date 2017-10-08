@@ -3,19 +3,36 @@
 
 #include "libpdf/hpdf.h"
 #include "libxml/tree.h"
+#include "fonts.h"
+
 // view.h: interface for a View object as well as a ViewGroup object
 //   Provides options to build a ViewTree from a XML document, as well as
 //   freeing the ViewTree
  
 typedef enum size_type {
-	SIZE_MATCH_PARENT,
-	SIZE_WRAP_CONTENT,
+	SIZE_FILL,
+	SIZE_AUTO,
 	SIZE_EXACT
 } size_type;
 
 static const char* size_type_string[] = {
-	"MATCH_PARENT", "WRAP_CONTENT", "EXACT"
+	"FILL", "AUTO", "EXACT"
 };
+
+// gravity is an int, with bit fields set
+typedef enum gravity_type {
+	//GRAVITY_TOP 				= 0x00000001,
+	GRAVITY_BOTTOM 				= 1 << 0,
+	
+	//GRAVITY_LEFT 				= 0x00000010,
+	GRAVITY_RIGHT				= 1 << 1,
+
+	GRAVITY_CENTER_HORIZONTAL	= 1 << 3,
+	GRAVITY_CENTER_VERTICAL		= 1 << 4,
+	GRAVITY_CENTER				= GRAVITY_CENTER_HORIZONTAL | GRAVITY_CENTER_VERTICAL
+} gravity_type;
+
+static const int default_gravity = 0;
 
 typedef enum type {
 	// View Groups
@@ -49,12 +66,7 @@ typedef union {
 	// Singular Views
 	struct {	
 		int size;
-		enum {
-			STYLE_NONE,
-			STYLE_BOLD,
-			STYLE_ITALIC,
-			STYLE_BOLDITALIC
-		} style;
+		font_style style;
 		HPDF_Font font;
 		char* text;
 		char color[6];
@@ -98,7 +110,8 @@ typedef struct layout_params {
     int padding_right;
     int padding_top;
 	int padding_bottom;
-	
+	int gravity;
+
 	// Width and Height as well as position will be used in layout and draw
 	double x;
 	double y;

@@ -381,8 +381,6 @@ HPDF_STATUS
 HPDF_Array_AddReal  (HPDF_Array  array,
                      HPDF_REAL   value);
 
-HPDF_STATUS
-HPDF_Array_AddNull  (HPDF_Array       array);
 
 HPDF_STATUS
 HPDF_Array_AddName  (HPDF_Array       array,
