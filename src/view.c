@@ -33,6 +33,11 @@
 #define XML_LAYOUT_PADDING_BOTTOM 	(const xmlChar*) "padding-bottom"
 #define XML_LAYOUT_PADDING_LEFT 	(const xmlChar*) "padding-left"
 #define XML_LAYOUT_PADDING_RIGHT 	(const xmlChar*) "padding-right"
+#define XML_LAYOUT_BORDER 			(const xmlChar*) "border"
+#define XML_LAYOUT_BORDER_TOP 		(const xmlChar*) "border-top"
+#define XML_LAYOUT_BORDER_BOTTOM 	(const xmlChar*) "border-bottom"
+#define XML_LAYOUT_BORDER_LEFT 		(const xmlChar*) "border-left"
+#define XML_LAYOUT_BORDER_RIGHT 	(const xmlChar*) "border-right"
 #define XML_GRAVITY 				(const xmlChar*) "gravity"
 
 #define XML_GRAVITY_LEFT 			(const xmlChar*) "left"
@@ -55,6 +60,11 @@
 #define XML_TEXT_STYLE_BOLD			(const xmlChar*) "bold"
 #define XML_TEXT_STYLE_ITALIC		(const xmlChar*) "italic"
 #define XML_TEXT_STYLE_BOLDITALIC	(const xmlChar*) "bolditalic"
+#define XML_ALIGN 					(const xmlChar*) "align"
+#define XML_ALIGN_LEFT 				(const xmlChar*) "left"
+#define XML_ALIGN_RIGHT 			(const xmlChar*) "right"
+#define XML_ALIGN_CENTER	 		(const xmlChar*) "center"
+#define XML_ALIGN_JUSTIFY	 		(const xmlChar*) "justify"
 #define XML_SRC						(const xmlChar*) "src"
 #define XML_SCALE_TYPE				(const xmlChar*) "scale-type"
 #define XML_SCALE_TYPE_CENTER		(const xmlChar*) "center"
@@ -199,13 +209,17 @@ view_properties get_text_view_properties(const xmlNode* node) {
 	properties.text_view.size = 14;
 	properties.text_view.style = STYLE_NONE;
 	properties.text_view.text = strdup("");
+	properties.text_view.align = ALIGN_LEFT;
+
 	// Grab Properties
 	xmlChar* text_size = xmlGetProp(node, XML_TEXT_SIZE);
 	xmlChar* font = xmlGetProp(node, XML_FONT);
 	xmlChar* text_style = xmlGetProp(node, XML_TEXT_STYLE);
 	xmlChar* text = xmlGetProp(node, XML_TEXT);
+	xmlChar* align = xmlGetProp(node, XML_ALIGN);
+
 	if (text_size) {
-		properties.text_view.size = atoi(text_size);
+		properties.text_view.size = atof(text_size);
 		free(text_size);
 	}
 	if (text) {
@@ -230,6 +244,24 @@ view_properties get_text_view_properties(const xmlNode* node) {
 			// Maybe Error Handle, but we can just ignore invalid values	
 		}
 		free(text_style);
+	}
+	if (align) {
+		if (xmlStrEqual(align, XML_ALIGN_LEFT)) {
+			properties.text_view.align = ALIGN_LEFT;
+		}
+		else if (xmlStrEqual(align, XML_ALIGN_RIGHT)) {
+			properties.text_view.align = ALIGN_RIGHT;
+		}
+		else if (xmlStrEqual(align, XML_ALIGN_CENTER)) {
+			properties.text_view.align = ALIGN_CENTER;
+		}
+		else if (xmlStrEqual(align, XML_ALIGN_JUSTIFY)) {
+			properties.text_view.align = ALIGN_JUSTIFY;
+		}
+		else {
+			// Maybe Error Handle, but we can just ignore invalid values	
+		}
+		free(align);
 	}
 	if (font) {
 		properties.text_view.font = 
@@ -311,6 +343,10 @@ layout_params get_layout_params(const xmlNode* node) {
 	layout.padding_right = 0;
 	layout.padding_top = 0;
 	layout.padding_bottom = 0;
+	layout.border_left = 0;
+	layout.border_right = 0;
+	layout.border_top = 0;
+	layout.border_bottom = 0;
 	layout.width_type = SIZE_AUTO;
 	layout.height_type = SIZE_AUTO;
 	layout.x = 0;
@@ -324,6 +360,11 @@ layout_params get_layout_params(const xmlNode* node) {
 	xmlChar* margin_bottom = xmlGetProp(node, XML_LAYOUT_MARGIN_BOTTOM);
 	xmlChar* margin_left = xmlGetProp(node, XML_LAYOUT_MARGIN_LEFT);
 	xmlChar* margin_right = xmlGetProp(node, XML_LAYOUT_MARGIN_RIGHT);
+	xmlChar* border = xmlGetProp(node, XML_LAYOUT_BORDER);
+	xmlChar* border_top = xmlGetProp(node, XML_LAYOUT_BORDER_TOP);
+	xmlChar* border_bottom = xmlGetProp(node, XML_LAYOUT_BORDER_BOTTOM);
+	xmlChar* border_left = xmlGetProp(node, XML_LAYOUT_BORDER_LEFT);
+	xmlChar* border_right = xmlGetProp(node, XML_LAYOUT_BORDER_RIGHT);
 	xmlChar* padding = xmlGetProp(node, XML_LAYOUT_PADDING);
 	xmlChar* padding_top = xmlGetProp(node, XML_LAYOUT_PADDING_TOP);
 	xmlChar* padding_bottom = xmlGetProp(node, XML_LAYOUT_PADDING_BOTTOM);
@@ -339,7 +380,7 @@ layout_params get_layout_params(const xmlNode* node) {
 			layout.width_type = SIZE_AUTO;
 		}
 		else {
-			layout.width = atoi(width);
+			layout.width = atof(width);
 			layout.width_type = SIZE_EXACT;
 		}
 		free(width);
@@ -353,7 +394,7 @@ layout_params get_layout_params(const xmlNode* node) {
 			layout.height_type = SIZE_AUTO;
 		}
 		else {
-			layout.height = atoi(height);
+			layout.height = atof(height);
 			layout.height_type = SIZE_EXACT;
 		}
 		free(height);
@@ -362,44 +403,65 @@ layout_params get_layout_params(const xmlNode* node) {
 	// Specific Margin Definitions are prioritized
 	if (margin) {
 		layout.margin_left = layout.margin_right =
-		layout.margin_bottom = layout.margin_top = atoi(margin);
+		layout.margin_bottom = layout.margin_top = atof(margin);
 		free(margin);
 	}
 	if (padding) {
 		layout.padding_left = layout.padding_right =
-		layout.padding_bottom = layout.padding_top = atoi(padding);
+		layout.padding_bottom = layout.padding_top = atof(padding);
 		free(padding);
 	}
+	if (border) {
+		layout.border_left = layout.border_right =
+		layout.border_bottom = layout.border_top = atof(border);
+		free(border);
+	}
+	if (border_left) {
+		layout.border_left = atof(border_left);
+		free(border_left);
+	}
+	if (border_right) {
+		layout.border_right = atof(border_right);
+		free(border_right);
+	}
+	if (border_top) {
+		layout.border_top = atof(border_top);
+		free(border_top);
+	}
+	if (border_bottom) {
+		layout.border_bottom = atof(border_bottom);
+		free(border_bottom);
+	}
 	if (margin_left) {
-		layout.margin_left = atoi(margin_left);
+		layout.margin_left = atof(margin_left);
 		free(margin_left);
 	}
 	if (margin_right) {
-		layout.margin_right = atoi(margin_right);
+		layout.margin_right = atof(margin_right);
 		free(margin_right);
 	}
 	if (margin_top) {
-		layout.margin_top = atoi(margin_top);
+		layout.margin_top = atof(margin_top);
 		free(margin_top);
 	}
 	if (margin_bottom) {
-		layout.margin_bottom = atoi(margin_bottom);
+		layout.margin_bottom = atof(margin_bottom);
 		free(margin_bottom);
 	}
 	if (padding_left) {
-		layout.padding_left = atoi(padding_left);
+		layout.padding_left = atof(padding_left);
 		free(padding_left);
 	}
 	if (padding_right) {
-		layout.padding_right = atoi(padding_right);
+		layout.padding_right = atof(padding_right);
 		free(padding_right);
 	}
 	if (padding_top) {
-		layout.padding_top = atoi(padding_top);
+		layout.padding_top = atof(padding_top);
 		free(padding_top);
 	}
 	if (padding_bottom) {
-		layout.padding_bottom = atoi(padding_bottom);
+		layout.padding_bottom = atof(padding_bottom);
 		free(padding_bottom);
 	}
 	if (gravity) {
@@ -574,10 +636,13 @@ void print_layout_params(layout_params layout) {
 			size_type_string[layout.height_type]);
 	}
 	print_indent();
-	printf(GRN "Margin: " RESET "%d, %d, %d, %d\n", layout.margin_left, 
+	printf(GRN "Margin: " RESET "%f, %f, %f, %f\n", layout.margin_left, 
 		layout.margin_right, layout.margin_top, layout.margin_bottom);
 	print_indent();
-	printf(GRN "Padding: " RESET "%d, %d, %d, %d\n", layout.padding_left, 
+	printf(GRN "Border: " RESET "%f, %f, %f, %f\n", layout.border_left, 
+		layout.border_right, layout.border_top, layout.border_bottom);
+	print_indent();
+	printf(GRN "Padding: " RESET "%f, %f, %f, %f\n", layout.padding_left, 
 		layout.padding_right, layout.padding_top, layout.padding_bottom);
 	print_indent();
 	printf(GRN "Position: " RESET "%f, %f\n", layout.x, layout.y);
@@ -623,13 +688,13 @@ void print_view(view* tree) {
 			HPDF_Font_GetFontName(tree->properties.text_view.font));
 		print_indent();
 		printf(GRN "Text: " RESET "%s\n", tree->properties.text_view.text);
-		print_indent();
+		/*print_indent();
 		printf(GRN "Code: " RESET);
 		char* s = tree->properties.text_view.text;
 		while(*s) {
 			printf("%02x ", (unsigned char) *s++);
 		}
-		printf("\n");
+		printf("\n");*/
 		print_indent();
 		printf(GRN "Color: " RESET "TBD\n");
 		indentation--;

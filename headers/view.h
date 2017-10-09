@@ -19,6 +19,12 @@ static const char* size_type_string[] = {
 	"FILL", "AUTO", "EXACT"
 };
 
+typedef enum align_direction {
+	ALIGN_LEFT,
+	ALIGN_RIGHT,
+	ALIGN_CENTER,
+	ALIGN_JUSTIFY
+} align_direction;
 // gravity is an int, with bit fields set
 typedef enum gravity_type {
 	//GRAVITY_TOP 				= 0x00000001,
@@ -67,6 +73,7 @@ typedef union {
 	struct {	
 		int size;
 		font_style style;
+		align_direction align;
 		HPDF_Font font;
 		char* text;
 		char color[6];
@@ -102,14 +109,18 @@ typedef struct layout_params {
     size_type height_type;
     double width;
 	double height;
-    int margin_left;
-    int margin_right;
-    int margin_top;
-    int margin_bottom;
-    int padding_left;
-    int padding_right;
-    int padding_top;
-	int padding_bottom;
+    float margin_left;
+    float margin_right;
+    float margin_top;
+    float margin_bottom;
+    float padding_left;
+    float padding_right;
+    float padding_top;
+	float padding_bottom;
+	float border_left;
+	float border_right;
+	float border_top;
+	float border_bottom;
 	int gravity;
 
 	// Width and Height as well as position will be used in layout and draw

@@ -12,9 +12,17 @@ static bool is_view(view* v) {
 	return !is_viewgroup(v);
 }
 
-void measure(view* v, float max_width, float max_height, 
-		measure_spec ms_width, measure_spec ms_height) {
-	// IGNORING SPEC FOR NOW, just use as much as needed
+static float get_full_width(view* v) {
+	return v->layout.width + v->layout.margin_left + 
+	v->layout.margin_right + v->layout.border_left + v->layout.border_right;
+}
+
+static float get_full_height(view* v) {
+	return v->layout.height + v->layout.margin_top + 
+	v->layout.margin_bottom + v->layout.border_top + v->layout.border_bottom;
+}
+
+void measure(view* v, float max_width, float max_height) {
 	double desired_height = 0;
 	double desired_width = 0;
 	double width_margin = v->layout.margin_left + v->layout.margin_right;
@@ -52,7 +60,11 @@ void measure(view* v, float max_width, float max_height,
 			//printf("Line: %s\n", line);
 			int length = strlen(line);
 			while (length > max_char) {
-				//printf("Max Char: %d\n", max_char);
+				if (max_char == 0) {
+					printf("Fuck %s %f\n", text, max_width);
+					exit(1);
+				}
+				printf("Max Char: %d Length: %d\n", max_char, length);
 				// Does not fit! Take the first max char items and pull back
 				//   until we find a thing to break on. Also will definitely 
 				//   need all the space we can get.
@@ -81,10 +93,6 @@ void measure(view* v, float max_width, float max_height,
 						length -= i - 1;
 						break;
 					}
-				}
-				//printf("\n%d characters out of %d remaining\n", index - oldI, length);
-				for (; oldI < index; oldI++) {
-					printf("%c", text[oldI]);
 				}
 				//printf("\n\n");
 				max_char = 
@@ -127,16 +135,16 @@ void measure(view* v, float max_width, float max_height,
 		float used_y = 0;
 		while (child) {			
 			measure(child->elem, max_width - used_x, 
-				max_height - used_y, ms_width, ms_height);
+				max_height - used_y);
 			if (v->properties.linear_layout.orientation == 
 				ORIENTATION_VERTICAL) {	
-				desired_height += child->elem->layout.height;
-				used_y += child->elem->layout.height;
+				desired_height += get_full_height(child->elem);
+				used_y += get_full_height(child->elem);
 				desired_width = max(desired_width, child->elem->layout.width);
 			}
 			else {
-				desired_width += child->elem->layout.width;
-				used_x += child->elem->layout.width;
+				desired_width += get_full_width(child->elem);
+				used_x += get_full_width(child->elem);
 				desired_height = max(desired_height, child->elem->layout.height);
 			}
 			child = child->next;
@@ -198,20 +206,14 @@ void position(view* v, float x, float y) {
 			position(child->elem, tlx, tly);
 			if (v->properties.linear_layout.orientation == 
 					ORIENTATION_VERTICAL) {	
-				tly += child->elem->layout.height + 
-				child->elem->layout.margin_top + 
-				child->elem->layout.margin_bottom;
-				max_child_width = max(max_child_width, child->elem->layout.width + 
-					child->elem->layout.margin_left + 
-					child->elem->layout.margin_right);
+				tly += get_full_height(child->elem);
+				max_child_width = max(max_child_width, 
+					get_full_width(child->elem));
 			}
 			else {
-				tlx += child->elem->layout.width+ 
-				child->elem->layout.margin_left + 
-				child->elem->layout.margin_right;
-				max_child_height = max(max_child_height, child->elem->layout.height + 
-					child->elem->layout.margin_top + 
-					child->elem->layout.margin_bottom);
+				tlx += get_full_width(child->elem);
+				max_child_height = max(max_child_height, 
+					get_full_height(child->elem));
 			}
 			child = child->next;
 		}
@@ -221,8 +223,8 @@ void position(view* v, float x, float y) {
 
 		child = v->properties.linear_layout.children;
 		while (child) {
-			float child_width = child->elem->layout.width;
-			float child_height = child->elem->layout.height;
+			float child_width = get_full_width(child->elem);
+			float child_height = get_full_height(child->elem);
 			float offset_x = 0.0;
 			float offset_y = 0.0;
 			if (v->layout.gravity & GRAVITY_CENTER_HORIZONTAL) {
@@ -250,7 +252,6 @@ void position(view* v, float x, float y) {
 			if (v->layout.gravity & GRAVITY_BOTTOM) {
 				offset_y = v->layout.height - vertical_padding - child_height;
 			}
-			printf("Offset: %f %f\n", offset_x, offset_y);
 			offset_position(child->elem, offset_x, offset_y);
 			child = child->next;
 		}
@@ -260,14 +261,13 @@ void position(view* v, float x, float y) {
 	}
 }
 
-void layout(view* v, float max_width, float max_height, 
-		measure_spec ms_width, measure_spec ms_height) {
+void layout(view* v, float max_width, float max_height) {
 	// Measure Children and Position Them
-	measure(v, max_width, max_height, ms_width, ms_height);
+	measure(v, max_width, max_height);
 	position(v, 0, 0);
 }
 
 // takes a view tree and generates width, height, x and y values
 void measure_and_layout(view* tree) {
-	return layout(tree, (int)(72.0 * 8.5), 72 * 11, MS_AT_MOST, MS_AT_MOST);
+	return layout(tree, (int)(72.0 * 8.5), 72 * 11);
 }
