@@ -25,7 +25,7 @@ char* strdup(char* src) {
 }
 
 char* format_special_characters(char* src) {
-	size_t len = strlen(src);
+	int len = strlen(src);
 	char* str = malloc(len + 1);
 	size_t s = 0;
 	if (str) {
