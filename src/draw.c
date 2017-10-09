@@ -3,12 +3,11 @@
 #include "util.h"
 #include "color.h"
 
-void set_page_color(HPDF_Page page, char* color) {
-	rgb c = stoc(color);
+static void set_page_color(HPDF_Page page, rgb c) {
 	HPDF_Page_SetRGBFill(page, c.red, c.green, c.blue);
 }
 
-void draw_rectangle(HPDF_Page page, rgb c, 
+static void draw_rectangle(HPDF_Page page, rgb c, 
 		double x, double y, double width, double height) {
 	HPDF_Page_SetRGBFill(page, c.red, 
 		c.green, c.blue);
@@ -48,28 +47,28 @@ void draw(view* v, HPDF_Page page) {
 	float outer_by = inner_by - v->layout.border_bottom;
 	
 	if (v->layout.border_left) {
-		draw_rectangle(page, stoc("000000"), 
+		draw_rectangle(page, v->layout.border_color, 
 			outer_tx,
 			outer_by, 
 			v->layout.border_left,
 			outer_ty - outer_by);
 	}
 	if (v->layout.border_right) {
-		draw_rectangle(page, stoc("000000"), 
+		draw_rectangle(page, v->layout.border_color, 
 			inner_bx,
 			outer_by, 
 			v->layout.border_right,
 			outer_ty - outer_by);
 	}
 	if (v->layout.border_top) {
-		draw_rectangle(page, stoc("000000"), 
+		draw_rectangle(page, v->layout.border_color, 
 			outer_tx,
 			outer_ty, 
 			outer_bx - outer_tx,
 			-v->layout.border_top);
 	}
 	if (v->layout.border_bottom) {
-		draw_rectangle(page, stoc("000000"), 
+		draw_rectangle(page, v->layout.border_color, 
 			outer_tx,
 			outer_by, 
 			outer_bx - outer_tx,
@@ -78,7 +77,7 @@ void draw(view* v, HPDF_Page page) {
 
 	if (v->type == TYPE_TEXT_VIEW) {
 		HPDF_Rect bbox = HPDF_Font_GetBBox(v->properties.text_view.font);
-		set_page_color(page, "000000");
+		set_page_color(page, v->properties.text_view.color);
 		HPDF_Page_BeginText(page);
 		HPDF_Page_SetFontAndSize(page, v->properties.text_view.font, 
 			v->properties.text_view.size);

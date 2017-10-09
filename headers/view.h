@@ -4,6 +4,7 @@
 #include "libpdf/hpdf.h"
 #include "libxml/tree.h"
 #include "fonts.h"
+#include "color.h"
 
 // view.h: interface for a View object as well as a ViewGroup object
 //   Provides options to build a ViewTree from a XML document, as well as
@@ -76,7 +77,7 @@ typedef union {
 		align_direction align;
 		HPDF_Font font;
 		char* text;
-		char color[6];
+		rgb color;
 	} text_view;
 
 	struct {	
@@ -121,6 +122,7 @@ typedef struct layout_params {
 	float border_right;
 	float border_top;
 	float border_bottom;
+	rgb border_color;
 	int gravity;
 
 	// Width and Height as well as position will be used in layout and draw

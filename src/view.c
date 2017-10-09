@@ -38,6 +38,7 @@
 #define XML_LAYOUT_BORDER_BOTTOM 	(const xmlChar*) "border-bottom"
 #define XML_LAYOUT_BORDER_LEFT 		(const xmlChar*) "border-left"
 #define XML_LAYOUT_BORDER_RIGHT 	(const xmlChar*) "border-right"
+#define XML_LAYOUT_BORDER_COLOR		(const xmlChar*) "border-color"
 #define XML_GRAVITY 				(const xmlChar*) "gravity"
 
 #define XML_GRAVITY_LEFT 			(const xmlChar*) "left"
@@ -55,6 +56,7 @@
 #define XML_TEXT					(const xmlChar*) "text"
 #define XML_FONT					(const xmlChar*) "font"
 #define XML_TEXT_SIZE				(const xmlChar*) "size"
+#define XML_TEXT_COLOR				(const xmlChar*) "color"
 #define XML_TEXT_STYLE				(const xmlChar*) "style"
 #define XML_TEXT_STYLE_NONE			(const xmlChar*) "none"
 #define XML_TEXT_STYLE_BOLD			(const xmlChar*) "bold"
@@ -75,8 +77,8 @@
 static int indentation = 0;
 
 // Forward Declarations
-view *build_view(xmlNode*, xmlNode*);
-view *build_viewgroup(xmlNode*, xmlNode*);
+static view *build_view(xmlNode*, xmlNode*);
+static view *build_viewgroup(xmlNode*, xmlNode*);
 
 static bool is_viewgroup(const xmlNode* node) {
 	return xmlStrEqual(node->name, XML_FRAME_LAYOUT)
@@ -88,7 +90,7 @@ static bool is_view(const xmlNode* node) {
 	|| xmlStrEqual(node->name, XML_IMAGE_VIEW);
 }
 
-void fill_in_substitution(char** str_p, int start, int end, 
+static void fill_in_substitution(char** str_p, int start, int end, 
 	char* replace_with) {
 	// Example: "Hello $testing whee" replace "Felix"
 	//           start-^       ^-end
@@ -110,7 +112,7 @@ void fill_in_substitution(char** str_p, int start, int end,
 	free(old);
 }
 
-void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
+static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 	if (!node) return;
 	for (xmlAttr* attr = node->properties; attr; attr = attr->next) {
 		char* value = xmlGetProp(node, attr->name);
@@ -167,7 +169,7 @@ void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 	}
 }
 
-gravity_type get_gravity_type(char* string, int line) {
+static gravity_type get_gravity_type(char* string, int line) {
 	string = trim(string);
 	if (strcmp(string, XML_GRAVITY_LEFT) == 0) {
 		return 0;
@@ -195,7 +197,7 @@ gravity_type get_gravity_type(char* string, int line) {
 	}
 }
 
-view_properties get_frame_layout_properties(const xmlNode* node, 
+static view_properties get_frame_layout_properties(const xmlNode* node, 
 		viewlist* child_list) {
 	view_properties properties;
 	// Setup Default Values
@@ -203,13 +205,14 @@ view_properties get_frame_layout_properties(const xmlNode* node,
 	return properties;
 }
 
-view_properties get_text_view_properties(const xmlNode* node) {
+static view_properties get_text_view_properties(const xmlNode* node) {
 	view_properties properties;
 	// Setup Default Values
 	properties.text_view.size = 14;
 	properties.text_view.style = STYLE_NONE;
 	properties.text_view.text = strdup("");
 	properties.text_view.align = ALIGN_LEFT;
+	properties.text_view.color = stoc("#000000");
 
 	// Grab Properties
 	xmlChar* text_size = xmlGetProp(node, XML_TEXT_SIZE);
@@ -217,10 +220,15 @@ view_properties get_text_view_properties(const xmlNode* node) {
 	xmlChar* text_style = xmlGetProp(node, XML_TEXT_STYLE);
 	xmlChar* text = xmlGetProp(node, XML_TEXT);
 	xmlChar* align = xmlGetProp(node, XML_ALIGN);
+	xmlChar* color = xmlGetProp(node, XML_TEXT_COLOR);
 
 	if (text_size) {
 		properties.text_view.size = atof(text_size);
 		free(text_size);
+	}
+	if (color) {
+		properties.text_view.color = stoc(color);
+		free(color);
 	}
 	if (text) {
 		free(properties.text_view.text);
@@ -275,7 +283,7 @@ view_properties get_text_view_properties(const xmlNode* node) {
 	return properties;
 }
 
-view_properties get_image_view_properties(const xmlNode* node) {
+static view_properties get_image_view_properties(const xmlNode* node) {
 	view_properties properties;
 	// Setup Default Values
 	properties.image_view.scale_type = SCALE_CENTER;
@@ -309,7 +317,7 @@ view_properties get_image_view_properties(const xmlNode* node) {
 	return properties;
 }
 
-view_properties get_linear_layout_properties(const xmlNode* node, 
+static view_properties get_linear_layout_properties(const xmlNode* node, 
 		viewlist* child_list) {
 	view_properties properties;
 	// Setup Default Values
@@ -332,7 +340,7 @@ view_properties get_linear_layout_properties(const xmlNode* node,
 	return properties;
 }
 
-layout_params get_layout_params(const xmlNode* node) {
+static layout_params get_layout_params(const xmlNode* node) {
 	layout_params layout;
 	// Setup Default Values
 	layout.margin_left = 0;
@@ -352,6 +360,7 @@ layout_params get_layout_params(const xmlNode* node) {
 	layout.x = 0;
 	layout.y = 0;
 	layout.gravity = 0;
+
 	// Width and Height are Required
 	xmlChar* width = xmlGetProp(node, XML_LAYOUT_WIDTH);
 	xmlChar* height = xmlGetProp(node, XML_LAYOUT_HEIGHT);
@@ -365,6 +374,7 @@ layout_params get_layout_params(const xmlNode* node) {
 	xmlChar* border_bottom = xmlGetProp(node, XML_LAYOUT_BORDER_BOTTOM);
 	xmlChar* border_left = xmlGetProp(node, XML_LAYOUT_BORDER_LEFT);
 	xmlChar* border_right = xmlGetProp(node, XML_LAYOUT_BORDER_RIGHT);
+	xmlChar* border_color = xmlGetProp(node, XML_LAYOUT_BORDER_COLOR);
 	xmlChar* padding = xmlGetProp(node, XML_LAYOUT_PADDING);
 	xmlChar* padding_top = xmlGetProp(node, XML_LAYOUT_PADDING_TOP);
 	xmlChar* padding_bottom = xmlGetProp(node, XML_LAYOUT_PADDING_BOTTOM);
@@ -410,6 +420,10 @@ layout_params get_layout_params(const xmlNode* node) {
 		layout.padding_left = layout.padding_right =
 		layout.padding_bottom = layout.padding_top = atof(padding);
 		free(padding);
+	}
+	if (border_color) {
+		layout.border_color = stoc(border_color);
+		free(border_color);
 	}
 	if (border) {
 		layout.border_left = layout.border_right =
@@ -480,7 +494,7 @@ layout_params get_layout_params(const xmlNode* node) {
 	return layout;
 }
 
-view_type get_view_type(const xmlNode* node) {
+static view_type get_view_type(const xmlNode* node) {
 	if (xmlStrEqual(node->name, XML_FRAME_LAYOUT)) {
 		return TYPE_FRAME_LAYOUT;
 	}
@@ -512,7 +526,7 @@ static void print_element_names(xmlNode* a_node) {
 	}
 }
 
-view* build_view(xmlNode* node, xmlNode* template_base) {
+static view* build_view(xmlNode* node, xmlNode* template_base) {
 	if (template_base) {
 		fill_template_substitutions(node, template_base);
 	}
@@ -546,7 +560,7 @@ view* build_view(xmlNode* node, xmlNode* template_base) {
 }
 
 // Given an XML ViewGroup Node
-view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
+static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	viewlist* child_list = NULL;
 	viewlist** head_ptr = &child_list;
 	for (xmlNode* curr_child = node->children; 
@@ -596,7 +610,7 @@ view* build_page(xmlNode* pagenode) {
 	return build_view(root_child, NULL);
 }
 
-void print_indent() {
+static void print_indent() {
     char a[50] = {0};
     for (int i = 0; i < indentation; i++) {
         strcat(a, "| ");
@@ -605,7 +619,7 @@ void print_indent() {
     printf("%s", a);
 }
 
-void print_viewlist(viewlist* list) {
+static void print_viewlist(viewlist* list) {
 	if (!list) return;
 	print_indent();
 	printf(CYN "<ViewList Item>\n" RESET);
@@ -615,7 +629,7 @@ void print_viewlist(viewlist* list) {
 	print_viewlist(list->next);
 }
 
-void print_layout_params(layout_params layout) {
+static void print_layout_params(layout_params layout) {
 	print_indent();
 	printf(BLU "Layout Params:\n" RESET);
 	indentation++;
@@ -713,7 +727,7 @@ void print_view(view* tree) {
 	printf(RESET);
 }
 
-void free_viewlist(viewlist* list) {
+static void free_viewlist(viewlist* list) {
 	if (!list) return;
 	free_view(list->elem);
 	free_viewlist(list->next);

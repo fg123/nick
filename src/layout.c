@@ -22,7 +22,7 @@ static float get_full_height(view* v) {
 	v->layout.margin_bottom + v->layout.border_top + v->layout.border_bottom;
 }
 
-void measure(view* v, float max_width, float max_height) {
+static void measure(view* v, float max_width, float max_height) {
 	double desired_height = 0;
 	double desired_width = 0;
 	double width_margin = v->layout.margin_left + v->layout.margin_right;
@@ -173,7 +173,7 @@ void measure(view* v, float max_width, float max_height) {
 	v->layout.height_type = SIZE_EXACT;
 }
 
-void offset_position(view* v, float x, float y) {
+static void offset_position(view* v, float x, float y) {
 	v->layout.x += x;
 	v->layout.y += y;
 	if (v->type == TYPE_LINEAR_LAYOUT) {
@@ -185,7 +185,7 @@ void offset_position(view* v, float x, float y) {
 	}
 }
 
-void position(view* v, float x, float y) {
+static void position(view* v, float x, float y) {
 	x += v->layout.margin_left;
 	y += v->layout.margin_top;
 
@@ -261,7 +261,7 @@ void position(view* v, float x, float y) {
 	}
 }
 
-void layout(view* v, float max_width, float max_height) {
+static void layout(view* v, float max_width, float max_height) {
 	// Measure Children and Position Them
 	measure(v, max_width, max_height);
 	position(v, 0, 0);
