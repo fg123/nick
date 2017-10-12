@@ -1,0 +1,6 @@
+This libharu library is included with the project source because it's a special
+build of libharu. It's actually built from this PR: 
+https://github.com/libharu/libharu/pull/142 which seems to add support for
+OpenType fonts. Until this is merged into the main repository, this compiler
+should be linked with this build of the library. 
+
