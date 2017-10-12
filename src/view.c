@@ -134,9 +134,8 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 				value[end] = 0;
 				char* replace_with = xmlGetProp(template_base, &value[start + 1]);
 				value[end] = old;
-				printf("Replacing %s with: %s\n", value, replace_with);
 				if (replace_with) {
-					i = start + strlen(replace_with);
+					i = start + strlen(replace_with) - 1;
 					fill_in_substitution(&value, start, end, replace_with);
 					free(replace_with);
 				}
@@ -210,7 +209,7 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 	// Setup Default Values
 	properties.text_view.size = 14;
 	properties.text_view.style = STYLE_NONE;
-	properties.text_view.text = strdup("");
+	properties.text_view.text = NULL;
 	properties.text_view.align = ALIGN_LEFT;
 	properties.text_view.color = stoc("#000000");
 
@@ -231,9 +230,11 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 		free(color);
 	}
 	if (text) {
-		free(properties.text_view.text);
 		properties.text_view.text = format_special_characters(text);
 		free(text);
+	}
+	else {
+		properties.text_view.text = strdup("");
 	}
 	if (text_style) {
 		if (xmlStrEqual(text_style, XML_TEXT_STYLE_NONE)) {
@@ -355,6 +356,7 @@ static layout_params get_layout_params(const xmlNode* node) {
 	layout.border_right = 0;
 	layout.border_top = 0;
 	layout.border_bottom = 0;
+	layout.border_color = stoc("#000000");
 	layout.width_type = SIZE_AUTO;
 	layout.height_type = SIZE_AUTO;
 	layout.x = 0;

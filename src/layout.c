@@ -64,7 +64,6 @@ static void measure(view* v, float max_width, float max_height) {
 					printf("Fuck %s %f\n", text, max_width);
 					exit(1);
 				}
-				printf("Max Char: %d Length: %d\n", max_char, length);
 				// Does not fit! Take the first max char items and pull back
 				//   until we find a thing to break on. Also will definitely 
 				//   need all the space we can get.

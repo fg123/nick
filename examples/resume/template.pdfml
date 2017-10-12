@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<!-- Fonts -->
+	<Font regular="fonts/MyriadPro/MyriadPro-Regular.otf"
+		  bold="fonts/MyriadPro/MyriadPro-Semibold.otf"
+		  italic="fonts/MyriadPro/MyriadPro-It.otf"
+		  name="Myriad Pro" />
+
+	<Font regular="fonts/MyriadPro/MyriadPro-Semibold.otf"
+		  bold="fonts/MyriadPro/MyriadPro-Bold.otf"
+		  name="Myriad Pro Bold" />
+	
+	<Font regular="fonts/Lato/Lato-Regular.ttf"
+		  bold="fonts/Lato/Lato-Bold.ttf"
+		  italic="fonts/Lato/Lato-Italic.ttf"
+		  bold-italic="fonts/Lato/Lato-BoldItalic.ttf"
+		  name="Lato" />
+
+	<Font regular="fonts/FontAwesome.ttf"
+		  name="FontAwesome" />
+
+	<!-- Templates -->
+	<Template name="Section">
+		<LinearLayout>
+			<LinearLayout orientation="horizontal" margin-bottom="5">
+				<TextView text="$name >" size="16" style="bold" font="Myriad Pro Bold" />
+				<TextView width="fill" border-bottom="1.5"/>
+			</LinearLayout>
+			<Content />
+		</LinearLayout>
+	</Template>
+
+	<Template name="ListItem">
+		<LinearLayout orientation="horizontal">
+			<TextView text=" -       " size="4" padding-top="4" font="FontAwesome" />
+			<TextView text="$content" size="9" font="Myriad Pro" />
+		</LinearLayout>
+	</Template>
+
+	<Template name="WorkEntry">
+		<LinearLayout width="fill" margin-bottom="5">
+			<LinearLayout orientation="horizontal" width="fill" gravity="center-vertical" margin-bottom="3">
+				<LinearLayout>
+					<TextView text="$name" size="12" style="bold" font="Myriad Pro"/>
+					<TextView text="$position" size="11" style="italic" font="Myriad Pro"/>
+				</LinearLayout>
+				<LinearLayout gravity="right" width="fill">
+					<TextView text="$location" size="12" style="bold" font="Myriad Pro"/>
+					<TextView text="$date" size="11" font="Myriad Pro"/>
+				</LinearLayout>
+			</LinearLayout>
+			<Content />
+		</LinearLayout>
+	</Template>
+
+	<Template name="SkillItem">
+		<LinearLayout orientation="horizontal" gravity="center-vertical" padding-bottom="3" >
+			<TextView text="$type" size="10" style="bold" font="Myriad Pro" width="80" align="right" padding-right="3" />
+			<TextView text="$skills" size="10" font="Myriad Pro" width="$width" />
+		</LinearLayout>
+	</Template>
+</Document>

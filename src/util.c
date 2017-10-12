@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
 
 static bool settings_data[SETTINGS_COUNT] = { false };
 
@@ -17,7 +18,7 @@ char* strdup(char* src) {
 	char* str;
 	char* p;
 	size_t len = strlen(src);
-	str = malloc(len + 1);
+	str = malloc((len + 1) * sizeof(char));
 	if (str) {
 	  memcpy(str, src, len + 1);
 	}
@@ -25,32 +26,33 @@ char* strdup(char* src) {
 }
 
 char* format_special_characters(char* src) {
+	if (strcmp(src, "2016 - 2021 (Expected)") == 0) {
+		printf("src: %s\n", src);
+	}
 	int len = strlen(src);
-	char* str = malloc(len + 1);
-	size_t s = 0;
-	if (str) {
-		for (int i = 0; i < len - 1; i++) {
-			if (src[i] == '\\') {
-				switch(src[i + 1]) {
-					case 'n':
-						str[s++] = '\n';
-						i++;
-						break;
-					case 't':
-						str[s++] = '\t';
-						i++;
-						break;
-					default:
-						str[s++] = '\\';
-				}
-			}
-			else {
-				str[s++] = src[i];
+	char* str = strdup(src);
+	int s = 0;
+	for (int i = 0; i < len; i++) {
+		if (src[i] == '\\' && i != len - 1) {
+			switch(src[i + 1]) {
+				case 'n':
+					str[s++] = '\n';
+					i++;
+					break;
+				case 't':
+					str[s++] = '\t';
+					i++;
+					break;
+				default:
+					str[s++] = '\\';
 			}
 		}
-		str[s++] = src[len - 1];
-		str[s] = 0;
+		else {
+			str[s++] = src[i];
+		}
 	}
+	str[s] = 0;
+	printf("s: %d, %d\n", s, len);
 	return str;
 }
 

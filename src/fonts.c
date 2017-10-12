@@ -5,6 +5,8 @@
 #include "pdf.h"
 #include "util.h"
 
+#define FONT_ENCODING "StandardEncoding"
+
 static font_node* fonts_ll = NULL;
 
 static const char* built_in[] = {
@@ -28,33 +30,33 @@ static void add_to_ll(char* name, HPDF_Font font, font_style style, int line);
 
 void fonts_init() {
 	add_to_ll("Courier", 
-		HPDF_GetFont(pdf, built_in[0], "StandardEncoding"), STYLE_NONE, 0);
+		HPDF_GetFont(pdf, built_in[0], FONT_ENCODING), STYLE_NONE, 0);
 	add_to_ll("Courier", 
-		HPDF_GetFont(pdf, built_in[1], "StandardEncoding"), STYLE_BOLD, 0);
+		HPDF_GetFont(pdf, built_in[1], FONT_ENCODING), STYLE_BOLD, 0);
 	add_to_ll("Courier", 
-		HPDF_GetFont(pdf, built_in[2], "StandardEncoding"), STYLE_ITALIC, 0);
+		HPDF_GetFont(pdf, built_in[2], FONT_ENCODING), STYLE_ITALIC, 0);
 	add_to_ll("Courier", 
-		HPDF_GetFont(pdf, built_in[3], "StandardEncoding"), STYLE_BOLDITALIC, 0);
+		HPDF_GetFont(pdf, built_in[3], FONT_ENCODING), STYLE_BOLDITALIC, 0);
 	add_to_ll("Helvetica", 
-		HPDF_GetFont(pdf, built_in[4], "StandardEncoding"), STYLE_NONE, 0);
+		HPDF_GetFont(pdf, built_in[4], FONT_ENCODING), STYLE_NONE, 0);
 	add_to_ll("Helvetica", 
-		HPDF_GetFont(pdf, built_in[5], "StandardEncoding"), STYLE_BOLD, 0);
+		HPDF_GetFont(pdf, built_in[5], FONT_ENCODING), STYLE_BOLD, 0);
 	add_to_ll("Helvetica", 
-		HPDF_GetFont(pdf, built_in[6], "StandardEncoding"), STYLE_ITALIC, 0);
+		HPDF_GetFont(pdf, built_in[6], FONT_ENCODING), STYLE_ITALIC, 0);
 	add_to_ll("Helvetica", 
-		HPDF_GetFont(pdf, built_in[7], "StandardEncoding"), STYLE_BOLDITALIC, 0);
+		HPDF_GetFont(pdf, built_in[7], FONT_ENCODING), STYLE_BOLDITALIC, 0);
 	add_to_ll("Times New Roman", 
-		HPDF_GetFont(pdf, built_in[8], "StandardEncoding"), STYLE_NONE, 0);
+		HPDF_GetFont(pdf, built_in[8], FONT_ENCODING), STYLE_NONE, 0);
 	add_to_ll("Times New Roman", 
-		HPDF_GetFont(pdf, built_in[9], "StandardEncoding"), STYLE_BOLD, 0);
+		HPDF_GetFont(pdf, built_in[9], FONT_ENCODING), STYLE_BOLD, 0);
 	add_to_ll("Times New Roman", 
-		HPDF_GetFont(pdf, built_in[10], "StandardEncoding"), STYLE_ITALIC, 0);
+		HPDF_GetFont(pdf, built_in[10], FONT_ENCODING), STYLE_ITALIC, 0);
 	add_to_ll("Times New Roman", 
-		HPDF_GetFont(pdf, built_in[11], "StandardEncoding"), STYLE_BOLDITALIC, 0);
+		HPDF_GetFont(pdf, built_in[11], FONT_ENCODING), STYLE_BOLDITALIC, 0);
 	add_to_ll("Symbol", 
-		HPDF_GetFont(pdf, built_in[12], "StandardEncoding"), STYLE_NONE, 0);
+		HPDF_GetFont(pdf, built_in[12], FONT_ENCODING), STYLE_NONE, 0);
 	add_to_ll("ZapfDingbats", 
-		HPDF_GetFont(pdf, built_in[13], "StandardEncoding"), STYLE_NONE, 0);
+		HPDF_GetFont(pdf, built_in[13], FONT_ENCODING), STYLE_NONE, 0);
 }
 
 HPDF_Font get_font(char* name, font_style style, int line) {
@@ -85,7 +87,7 @@ HPDF_Font get_font(char* name, font_style style, int line) {
 
 void put_font(char* name, font_style style, char* path, int line) {
 	const char* font_name = HPDF_LoadTTFontFromFile(pdf, path, HPDF_TRUE);
-	HPDF_Font font = HPDF_GetFont(pdf, font_name, "FontSpecific");
+	HPDF_Font font = HPDF_GetFont(pdf, font_name, FONT_ENCODING);
 	add_to_ll(name, font, style, line);
 }
 

@@ -32,6 +32,7 @@ void add_template(xmlNode* node, int line) {
 	if (template_exist(name)) {
 		error(line, TEMPLATE_ALREADY_EXISTS, name);
 	}
+	printf("Adding Template: %s...\n", name);
 	template_node* new_node = malloc(sizeof(template_node));
 	new_node->name = name;
 	new_node->node = xmlFirstElementChild(node);

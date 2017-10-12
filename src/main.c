@@ -27,6 +27,13 @@
 // Defining from pdf.h
 HPDF_Doc pdf;
 
+typedef struct xml_doc_node {
+	xmlDoc* elem;
+	struct xml_doc_node* next;
+} xml_doc_node;
+
+xml_doc_node* xml_docs = NULL;
+
 void usage() {
 	printf("Usage: nick [file]\n");
 	printf("	file: a valid Nick XML Layout File\n");
@@ -41,62 +48,45 @@ void error_handler (HPDF_STATUS   error_no,
 	exit(1);
 }
 
-void process_options(char** options, int len) {
-    for (int i = 0; i < len; i++) {
-		if (strcmp("-b", options[i]) == 0 ||  
-			strcmp("--show-bounding-box", options[i]) == 0) {
-            set_settings_flag(SETTINGS_SHOW_BOUNDING_BOX);
-		}
-        else {
-			usage();
-			exit(1);
-        }
-    }
-}
+void process_file(char* filename) {
+	printf("Processing file: %s...\n", filename);
+	xmlDoc* doc = NULL;
+	xmlNode* root_element = NULL;
 
-int main(int argc, char **argv) {
-	xmlDoc *doc = NULL;
-	xmlNode *root_element = NULL;
-
-	if (argc == 1) {
-		usage();
-		return(1);
-	}
-
-	LIBXML_TEST_VERSION
-
-	doc = xmlReadFile(argv[1], NULL, 0);
+	doc = xmlReadFile(filename, "UTF-8", 0);
 
 	if (doc == NULL) {
-		fprintf(stderr, "error: could not parse file %s\n", argv[1]);
-		return 1;
+		fprintf(stderr, "Could not parse file!\n");
+		exit(1);
 	}
 
-	process_options(&argv[2], argc - 2);
+	// Add to LL
+	xml_doc_node* doc_node = malloc(sizeof(xml_doc_node));
+	doc_node->elem = doc;
+	doc_node->next = xml_docs;
+	xml_docs = doc_node;
 
 	/*Get the root element node */
 	root_element = xmlDocGetRootElement(doc);
 	if (xmlStrcmp(root_element->name, (const xmlChar *) "Document")) {
 		fprintf(stderr, "Document of the wrong type, your root node must be a 'Document' object!\n");
-		return 1;
+		exit(1);
 	}
-	pdf = HPDF_New(error_handler, NULL);
-	fonts_init();
+	
 	if (!pdf) {
 		fprintf(stderr, "Cannot create pdf object.\n");
-		return 1;
+		exit(1);
 	}
+
 	for (xmlNode* child = root_element->children; child; child = child->next) {
 		if (xmlIsBlankNode(child)) continue;
 		if (child->type == XML_ELEMENT_NODE) {
-				//error(child->line, EXPECTED_ELEMENT_IN_DOCUMENT, child->type);
-			
 			if (xmlStrEqual(child->name, XML_FONT)) {
-				// name src bold regular bolditalic italic
 				xmlChar* name = xmlGetProp(child, XML_NAME);
 				if (!name) {
 					error(child->line, FONT_REQUIRES_NAME);
 				}
+				printf("Loading Font: %s...\n", name);
 				xmlChar* regular_path = xmlGetProp(child, XML_FONT_REGULAR);
 				xmlChar* bold_path = xmlGetProp(child, XML_FONT_BOLD);
 				xmlChar* italic_path = xmlGetProp(child, XML_FONT_ITALIC);
@@ -121,12 +111,13 @@ int main(int argc, char **argv) {
 				free(name);
 			}
 			else if (xmlStrEqual(child->name, XML_PAGE)) {
+				printf("Building Page...\n");
 				HPDF_Page page = HPDF_AddPage(pdf);
 				HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_LETTER, HPDF_PAGE_PORTRAIT);
 				// root_element is DOCUMENT, first child is a page, loop through here
 				view* root = build_page(child);
 				measure_and_layout(root);
-				print_view(root);
+				// print_view(root);
 			
 				draw(root, page);
 				free_view(root);
@@ -136,13 +127,57 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
-	free_templates_ll();
-	xmlFreeDoc(doc);
-	xmlCleanupParser();
+}
 
-	HPDF_SaveToFile(pdf, "test.pdf");
+int main(int argc, char **argv) {
+	if (argc == 1) {
+		usage();
+		return 1;
+	}
+	LIBXML_TEST_VERSION
+	pdf = HPDF_New(error_handler, NULL);
+	HPDF_UseUTFEncodings(pdf);
+	HPDF_SetCurrentEncoder(pdf, "UTF-8");
+	char* write_to_name = NULL;
+	fonts_init();
+	for (int i = 1; i < argc; i++) {
+		if (argv[i][0] == '-') {
+			if (strcmp("-b", argv[i]) == 0 ||  
+				strcmp("--show-bounding-box", argv[i]) == 0) {
+				set_settings_flag(SETTINGS_SHOW_BOUNDING_BOX);
+			}
+			else if (strcmp("-o", argv[i]) == 0 && i < argc - 1) {
+				write_to_name = argv[i + 1];
+				i++;
+			}
+			else {
+				usage();
+				exit(1);
+			}
+		}
+		else {
+			process_file(argv[i]);
+		}
+    }
+
+	free_templates_ll();
+
+	while (xml_docs) {
+		xmlFreeDoc(xml_docs->elem);
+		xml_doc_node* next = xml_docs->next;
+		free(xml_docs);
+		xml_docs = next;	
+	}
+	
+	xmlCleanupParser();
+	if (!write_to_name) {
+		write_to_name = "out.pdf";
+	}
+	printf("Writing to file: %s...\n", write_to_name);
+	HPDF_SaveToFile(pdf, write_to_name);
 	HPDF_Free(pdf);
 	free_fonts_ll();
+	printf("Done!\n");
 	return 0;
 }
 #else

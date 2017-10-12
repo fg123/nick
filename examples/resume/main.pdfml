@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>	
+	<Page>
+		<LinearLayout margin-left="72" margin-right="72" margin-bottom="50" margin-top="50" padding="10">
+			<LinearLayout orientation="horizontal" padding-bottom="10" width="fill" gravity="center-vertical">
+				<TextView text="Felix Guo" size="36" style="bold" font="Myriad Pro" />
+				<LinearLayout gravity="right" width="fill">
+					<LinearLayout orientation="horizontal">
+						<LinearLayout orientation="horizontal">
+							<TextView text="A" size="12" font="FontAwesome" padding-top="3" padding-right="1" />
+							<TextView text="(+1) 226-600-9117" size="12" font="Lato" />
+						</LinearLayout>
+						<TextView text="D " size="12" font="FontAwesome" padding="3" />
+						<LinearLayout orientation="horizontal">
+							<TextView text="B" size="12" font="FontAwesome" padding-top="3" padding-right="1" />
+							<TextView text="felix.guo@uwaterloo.ca" size="12" font="Lato" />
+						</LinearLayout>
+					</LinearLayout>
+					<LinearLayout orientation="horizontal">
+						<LinearLayout orientation="horizontal">
+							<TextView text="F" size="12" font="FontAwesome" padding-top="3" padding-right="1" />
+							<TextView text="felixguo.me" size="12" font="Lato" />
+						</LinearLayout>
+						<TextView text="C " size="12" font="FontAwesome" padding="3"/>
+						<LinearLayout orientation="horizontal">
+							<TextView text="E" size="12" font="FontAwesome" padding-top="3" padding-right="1" />
+							<TextView text="github.com/fg123" size="12" font="Lato" />
+						</LinearLayout>
+					</LinearLayout>
+				</LinearLayout>
+			</LinearLayout>
+			<Section name="SKILLS">
+				<LinearLayout margin-bottom="3">
+					<LinearLayout orientation="horizontal">
+						<SkillItem type="Programming" skills="C, C++, Java" width="80" />
+						<SkillItem type="Web" skills="HTML5, CSS, Javascript, jQuery, PHP, MySQL" width="fill" />
+					</LinearLayout>
+					<LinearLayout orientation="horizontal">
+						<SkillItem type="Game Design" skills="Unity, XNA" width="80" />
+						<SkillItem type="Limited" skills="Python, Racket (Scheme)" width="fill" />
+					</LinearLayout>
+					<SkillItem type="Team Based" skills="Detail-Oriented, Self-Motivated, Open-Minded" width="fill" />
+				</LinearLayout>
+			</Section>
+			<Section name="EXPERIENCE">
+				<WorkEntry name="Yahoo! Inc." position="Software Developer Intern" location="Sunnyvale, CA" date="May. 2017 - Aug. 2017">
+					<ListItem content="Created new Android &quot;Accordion&quot; ad layout for Growth and Monetization team with a custom view folding effect developed with Java to industry standards,raising click-through rates from 0.13% to 0.23%" />
+					<ListItem content="Developed Draft Chat and Draft Order pages up to spec, as well as various bug fixes as part of Yahoo Fantasy Sports's live draft system" />
+					<ListItem content="Given highest rating (Outstanding) by manager in Waterloo Co-op Performance Evaluation" />
+				</WorkEntry>
+				<WorkEntry name="Inkpad Studios (Mobile Gaming Startup)" position="Game Developer" location="Vancouver, BC" date="Nov. 2014 - Jun. 2016">
+					<ListItem content="Sole developer of Pedal Panic, a top-down tilt-controlled cycling game, working with Unity, Java and C#" />
+					<ListItem content="Implemented all parts of the game structure, including an audio manager for Unity, a randomized terrain generator, parallax scrolling for the background, and 3 different ad mediators for both interstitial and rewarded ads on Android" />
+					<ListItem content="Coordinated weekly meetings with game design, graphic artist, and sound artist teams to ensure task deadlines were met based on the Agile methodology" />
+				</WorkEntry>
+			</Section>
+			<Section name="PROJECTS">
+				<WorkEntry name="WendyScript" position="Programming Language > felixguo.me/wendy" date="Nov. 2016 - Present">
+					<ListItem content="Compiler written fully in C, supports dynamic typing, first class functions with closures and first class objects, including a lexer/parser, code-generator, and a bytecode VM" />
+					<ListItem content="Developed recursive descent parser to parse custom grammar into an abstract syntax tree as well as a VM to run custom compiled binaries" />
+				</WorkEntry>
+				<WorkEntry name="MercuryWM" position="Tiling, Multi-windowed JS Desktop Environment > felixguo.me/mercury" date="Jul. 2017 - Present">
+					<ListItem content="Developed a new-tab page replacement that is based on a tiling window manager using React and Redux" />
+					<ListItem content="Created a JSON object based virtual filesystem with corresponding bash commands to navigate" />
+					<ListItem content="Developed Javascript API to allow user created scripts to interact with main window through iFrames to allow diverse, interactable, user-created extensions such as displaying a clock, weather, or to-do list widget" />
+				</WorkEntry>
+				<WorkEntry name="Wish Youth Network Society" position="Director of IT > wishyouthnetwork.org" location="Vancouver, BC" date="Jun. 2015 - Present">
+					<ListItem content="Developed and currently managing website for Wish Youth Network Society, a non-profit organization" />
+					<ListItem content="Built using frontend Bootstrap with animate.css, and backend with PHP and MySQL" />
+					<ListItem content="Created custom blog management system to allow other members to create and update blog posts with proper data serialization to prevent SQL injection" />
+				</WorkEntry>
+			</Section>
+			<Section name="EDUCATION">
+				<LinearLayout orientation="horizontal" width="fill" gravity="center-vertical">
+					<LinearLayout>
+						<TextView text="University of Waterloo and Wilfrid Laurier University" size="12" style="bold" font="Myriad Pro"/>
+						<TextView text="Candidate for Bachelors of Computer Science and Business Administration" size="11" style="italic" font="Myriad Pro"/>
+					</LinearLayout>
+					<LinearLayout gravity="right" width="fill">
+						<TextView text="2016 - 2021 (Expected)" size="11" font="Myriad Pro"/>
+					</LinearLayout>
+				</LinearLayout>	
+			</Section>
+		</LinearLayout>
+	</Page>
+</Document>
