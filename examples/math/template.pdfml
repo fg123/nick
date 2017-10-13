@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
-	<Font regular="LMRoman12-Regular.ttf"
-		bold="LMRoman12-Bold.ttf" 
-		italic="LMRoman12-Italic.ttf" 
-		name="Latin Modern" />
 	<Font regular="LatinModernMath-Regular.ttf" name="Latin Math" />
 	<Template name="MathTextView">
 		<LinearLayout height="16" gravity="center-vertical" orientation="horizontal">
