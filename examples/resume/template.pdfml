@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<!-- Fonts -->
-	<Font regular="fonts/MyriadPro/MyriadPro-Regular.otf"
-		  bold="fonts/MyriadPro/MyriadPro-Semibold.otf"
-		  italic="fonts/MyriadPro/MyriadPro-It.otf"
+	<Font regular="fonts/MyriadPro-Regular.ttf"
+		  bold="fonts/MyriadPro-Semibold.ttf"
+		  italic="fonts/MyriadPro-It.ttf"
 		  name="Myriad Pro" />
 
-	<Font regular="fonts/MyriadPro/MyriadPro-Semibold.otf"
-		  bold="fonts/MyriadPro/MyriadPro-Bold.otf"
+	<Font regular="fonts/MyriadPro-Bold.ttf"
 		  name="Myriad Pro Bold" />
 	
-	<Font regular="fonts/Lato/Lato-Regular.ttf"
-		  bold="fonts/Lato/Lato-Bold.ttf"
-		  italic="fonts/Lato/Lato-Italic.ttf"
-		  bold-italic="fonts/Lato/Lato-BoldItalic.ttf"
+	<Font regular="fonts/Lato-Regular.ttf"
 		  name="Lato" />
 
 	<Font regular="fonts/FontAwesome.ttf"
@@ -23,7 +19,7 @@
 	<Template name="Section">
 		<LinearLayout>
 			<LinearLayout orientation="horizontal" margin-bottom="5">
-				<TextView text="$name >" size="16" style="bold" font="Myriad Pro Bold" />
+				<TextView text="$name >" size="16" font="Myriad Pro Bold" />
 				<TextView width="fill" border-bottom="1.5"/>
 			</LinearLayout>
 			<Content />

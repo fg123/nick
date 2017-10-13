@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<Font regular="Deng.ttf" bold="Dengb.ttf" italic="Dengl.ttf" name="Deng"/>
+	<Page>
+		<LinearLayout width="fill" height="fill" gravity="center">
+			<TextView text="这里可以写中文，在PDF里面可以显示的！" font="Deng" />
+		</LinearLayout>
+	</Page>
+</Document>

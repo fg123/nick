@@ -148,6 +148,8 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 		xmlSetProp(node, attr->name, value);
 		free(value);
 	}
+	// Shouldn't this be refactored to only check for itself? Idk why it broke
+	//  but OK ...
 	for (xmlNode* curr = node->children; curr; curr = curr->next) {
 		if (curr->type == XML_ELEMENT_NODE && 
 				xmlStrEqual(curr->name, XML_CONTENT)) {

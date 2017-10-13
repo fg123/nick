@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<Font regular="LMRoman12-Regular.ttf"
+		bold="LMRoman12-Bold.ttf" 
+		italic="LMRoman12-Italic.ttf" 
+		name="Latin Modern" />
+	<Font regular="LatinModernMath-Regular.ttf" name="Latin Math" />
+	<Template name="MathTextView">
+		<LinearLayout height="16" gravity="center-vertical" orientation="horizontal">
+			<TextView text="$content" font="Latin Math" width="$width" size="12" />
+		</LinearLayout>
+	</Template>
+	<Template name="Statement"> 
+		<LinearLayout orientation="horizontal">
+			<MathTextView content="$content" width="200" />
+			<MathTextView content="$reason" width="auto" />
+		</LinearLayout>
+	</Template>
+	<Template name="Line">
+		<LinearLayout orientation="horizontal" margin-top="2" margin-bottom="2">
+			<MathTextView content="$number " width="36"/>
+			<Content />
+		</LinearLayout>
+	</Template>
+	<Template name="Assumption">
+		<!-- Should be using frame layout here -->
+		<LinearLayout orientation="horizontal" border="1" margin-top="2" margin-bottom="2">
+			<LinearLayout orientation="vertical" padding-left="4" padding-right="4">
+				<Content />
+			</LinearLayout>
+		</LinearLayout>
+	</Template>
+</Document>	

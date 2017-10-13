@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<Page>
+		<LinearLayout margin="72">
+			<MathTextView content="Prove that: { (q ∨ r) } ⊢ ((q ∧ s) ∨ (s → r))" width="auto" />
+			<Line number="1.">
+				<Statement content="(q ∨ r)" reason="Premise" />
+			</Line>
+			<Assumption>
+				<Line number="2.">
+					<Statement content="(¬(s ∨ (¬s)))" reason="Assumption" />
+				</Line>
+				<Assumption>
+					<Line number="3.">
+						<Statement content="s" reason="Assumption" />
+					</Line>
+					<Line number="4.">
+						<Statement content="(s ∨ (¬s))" reason="∨i: 3" />
+					</Line>
+					<Line number="5.">
+						<Statement content="⊥" reason="¬e: 2, 4" />
+					</Line>
+				</Assumption>
+				<Line number="6.">
+					<Statement content="¬s" reason="¬i: 3-5" />
+				</Line>
+				<Line number="7.">
+					<Statement content="(s ∨ (¬s))" reason="∨i: 6" />
+				</Line>
+				<Line number="8.">
+					<Statement content="⊥" reason="¬e: 2, 7" />
+				</Line>
+			</Assumption>
+			<Line number="9.">
+				<Statement content="(¬(¬(s ∨ (¬s))))" reason="¬i: 2-8" />
+			</Line>
+			<Line number="10.">
+				<Statement content="(s ∨ (¬s))" reason="¬e: 9" />
+			</Line>
+			<Assumption>
+				<Line number="11.">
+					<Statement content="s" reason="Assumption" />
+				</Line>
+				<Line number="12.">
+					<Statement content="(q ∨ r)" reason="Reflexivity" />
+				</Line>
+				<Assumption>
+					<Line number="13.">
+						<Statement content="q" reason="Assumption" />
+					</Line>
+					<Line number="14.">
+						<Statement content="(q ∧ s)" reason="∧i: 11, 13" />
+					</Line>
+					<Line number="15.">
+						<Statement content="((q ∧ s) ∨ (s → r))" reason="∨i: 14" />
+					</Line>
+				</Assumption>
+				<Assumption>
+					<Line number="16.">
+						<Statement content="r" reason="Assumption" />
+					</Line>
+					<Line number="17.">
+						<Statement content="(s → r)" reason="→i: 11, 16" />
+					</Line>
+					<Line number="18.">
+						<Statement content="((q ∧ s) ∨ (s → r))" reason="∨i: 17" />
+					</Line>
+				</Assumption>
+			</Assumption>
+			<Assumption>
+				<Line number="20.">
+					<Statement content="(¬s)" reason="Assumption" />
+				</Line>
+				<Assumption>
+					<Line number="21.">
+						<Statement content="s" reason="Assumption" />
+					</Line>
+					<Line number="22.">
+						<Statement content="⊥" reason="¬e: 20, 21" />
+					</Line>
+					<Line number="23.">
+						<Statement content="r" reason="⊥e: 22" />
+					</Line>
+				</Assumption>
+				<Line number="24.">
+					<Statement content="(s → r)" reason="→i: 21-23" />
+				</Line>
+				<Line number="25.">
+					<Statement content="((q ∧ s) ∨ (s → r))" reason="∨i: 17" />
+				</Line>
+			</Assumption>
+			<Line number="26.">
+				<Statement content="((q ∧ s) ∨ (s → r))" reason="∨e: 10, 11-19, 20-25" />
+			</Line>
+		</LinearLayout>
+	</Page>
+</Document>
