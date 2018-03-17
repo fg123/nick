@@ -53,6 +53,7 @@
 #define XML_ORIENTATION				(const xmlChar*) "orientation"
 #define XML_ORIENTATION_VERTICAL 	(const xmlChar*) "vertical"
 #define XML_ORIENTATION_HORIZONTAL 	(const xmlChar*) "horizontal"
+#define XML_LINK					(const xmlChar*) "link"
 #define XML_TEXT					(const xmlChar*) "text"
 #define XML_FONT					(const xmlChar*) "font"
 #define XML_TEXT_SIZE				(const xmlChar*) "size"
@@ -212,6 +213,7 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 	properties.text_view.size = 14;
 	properties.text_view.style = STYLE_NONE;
 	properties.text_view.text = NULL;
+	properties.text_view.link = NULL;
 	properties.text_view.align = ALIGN_LEFT;
 	properties.text_view.color = stoc("#000000");
 
@@ -222,6 +224,7 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 	xmlChar* text = xmlGetProp(node, XML_TEXT);
 	xmlChar* align = xmlGetProp(node, XML_ALIGN);
 	xmlChar* color = xmlGetProp(node, XML_TEXT_COLOR);
+	xmlChar* link = xmlGetProp(node, XML_LINK);
 
 	if (text_size) {
 		properties.text_view.size = atof(text_size);
@@ -230,6 +233,13 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 	if (color) {
 		properties.text_view.color = stoc(color);
 		free(color);
+	}
+	if (link) {
+		properties.text_view.link = strdup(link);
+		free(link);
+	}
+	else {
+		properties.text_view.link = strdup("");
 	}
 	if (text) {
 		properties.text_view.text = format_special_characters(text);
@@ -706,6 +716,7 @@ void print_view(view* tree) {
 			HPDF_Font_GetFontName(tree->properties.text_view.font));
 		print_indent();
 		printf(GRN "Text: " RESET "%s\n", tree->properties.text_view.text);
+		printf(GRN "Link: " RESET "%s\n", tree->properties.text_view.link);
 		/*print_indent();
 		printf(GRN "Code: " RESET);
 		char* s = tree->properties.text_view.text;
@@ -748,6 +759,7 @@ void free_view(view* tree) {
 	}
 	else if (tree->type == TYPE_TEXT_VIEW) {
 		free(tree->properties.text_view.text);
+		free(tree->properties.text_view.link);
 	}
 	else if (tree->type == TYPE_IMAGE_VIEW) {
 		free(tree->properties.image_view.src);

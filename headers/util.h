@@ -5,9 +5,11 @@
 
 #define SETTINGS_COUNT 1
 
+#define strdup(x) _strdup(x)
+
 char* format_special_characters(char* src);
 void insert_newline(char** str, int position);
-char* strdup(char* src);
+char* _strdup(const char* src);
 int min(int a, int b);
 int max(int a, int b);
 char* trim(char* str);

@@ -88,14 +88,24 @@ void draw(view* v, HPDF_Page page) {
             case ALIGN_CENTER: alignment = HPDF_TALIGN_CENTER; break;
             case ALIGN_JUSTIFY: alignment = HPDF_TALIGN_JUSTIFY; break;
         }
+        HPDF_REAL left = v->layout.x + v->layout.padding_left;
+        HPDF_REAL top = pageHeight - (v->layout.y + v->layout.padding_top);
+        HPDF_REAL right =  v->layout.x + v->layout.width - v->layout.padding_right;
+        HPDF_REAL bottom = pageHeight - (v->layout.y + v->layout.height - v->layout.padding_bottom);
         HPDF_Page_TextRect(page,
-            v->layout.x + v->layout.padding_left,
-            pageHeight - (v->layout.y + v->layout.padding_top),
-            v->layout.x + v->layout.width - v->layout.padding_right,
-            pageHeight - (v->layout.y + v->layout.height - v->layout.padding_bottom),
+            left,
+            top,
+            right,
+            bottom,
             v->properties.text_view.text,
             alignment, NULL);
         HPDF_Page_EndText(page);
+        if (strcmp(v->properties.text_view.link, "") != 0) {
+            HPDF_Rect rect = { left, bottom, right, top };
+            printf("Creating a link: %s\n", v->properties.text_view.link);
+            HPDF_Page_CreateURILinkAnnot(page, rect,
+                v->properties.text_view.link);
+        }
     }
     else if (v->type == TYPE_IMAGE_VIEW) {
 

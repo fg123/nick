@@ -78,6 +78,7 @@ typedef union {
 		HPDF_Font font;
 		char* text;
 		rgb color;
+		char* link;
 	} text_view;
 
 	struct {	

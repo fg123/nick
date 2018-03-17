@@ -14,7 +14,7 @@ bool get_settings_flag(settings_flags flag) {
     return settings_data[flag];
 }
 
-char* strdup(char* src) {
+char* _strdup(const char* src) {
 	char* str;
 	char* p;
 	size_t len = strlen(src);
@@ -26,9 +26,6 @@ char* strdup(char* src) {
 }
 
 char* format_special_characters(char* src) {
-	if (strcmp(src, "2016 - 2021 (Expected)") == 0) {
-		printf("src: %s\n", src);
-	}
 	int len = strlen(src);
 	char* str = strdup(src);
 	int s = 0;
