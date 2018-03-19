@@ -1,5 +1,6 @@
 #include "layout.h"
 #include "util.h"
+#include "pdf.h"
 #include "libpdf/hpdf.h"
 #include <stdbool.h>
 #include <string.h>
@@ -126,7 +127,16 @@ static void measure(view* v, float max_width, float max_height) {
         desired_height *= lines;
     }
     else if (v->type == TYPE_IMAGE_VIEW) {
-
+		HPDF_UINT actual_width = HPDF_Image_GetWidth(v->properties.image_view.image);
+		HPDF_UINT actual_height = HPDF_Image_GetHeight(v->properties.image_view.image);
+		// @144 DPI, aka 2x 72(DEFAULT) dpi, we want the image to be half the size
+		double scaling_factor = DEFAULT_DPI / v->properties.image_view.dpi;
+		double scaled_width = actual_width * scaling_factor;
+		double scaled_height = actual_height * scaling_factor;
+		desired_width = min(scaled_width, max_width);
+		desired_height = min(scaled_height, max_height);
+		// TODO: Add calculations for different scaling types? Might not actually
+		//   be needed here...
     }
     else if (v->type == TYPE_LINEAR_LAYOUT) {
         viewlist* child = v->properties.linear_layout.children;

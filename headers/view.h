@@ -26,6 +26,7 @@ typedef enum align_direction {
 	ALIGN_CENTER,
 	ALIGN_JUSTIFY
 } align_direction;
+
 // gravity is an int, with bit fields set
 typedef enum gravity_type {
 	//GRAVITY_TOP 				= 0x00000001,
@@ -89,6 +90,8 @@ typedef union {
 			SCALE_FIT_CENTER
 		} scale_type;
 		char* src;
+		HPDF_Image image;
+		double dpi;
 	} image_view;
 } view_properties;
 

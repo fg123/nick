@@ -4,9 +4,9 @@
 #include "error.h"
 #include "pdf.h"
 #include "util.h"
+#include "templates.h"
 #include <stdbool.h>
 #include <string.h>
-#include "templates.h"
 
 // view.c implements the building of the ViewTree from a PageNode
 
@@ -69,6 +69,7 @@
 #define XML_ALIGN_CENTER	 		(const xmlChar*) "center"
 #define XML_ALIGN_JUSTIFY	 		(const xmlChar*) "justify"
 #define XML_SRC						(const xmlChar*) "src"
+#define XML_DPI						(const xmlChar*) "dpi"
 #define XML_SCALE_TYPE				(const xmlChar*) "scale-type"
 #define XML_SCALE_TYPE_CENTER		(const xmlChar*) "center"
 #define XML_SCALE_TYPE_CROP			(const xmlChar*) "center-crop"
@@ -296,6 +297,17 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 	return properties;
 }
 
+bool ends_with_png(const char* name) {
+	size_t len = strlen(name);
+	return (strcmp(&name[len - 3], "png") == 0);
+}
+
+bool ends_with_jpg(const char* name) { 
+	size_t len = strlen(name);
+	return (strcmp(&name[len - 3], "jpg") == 0 ||
+	        strcmp(&name[len - 4], "jpeg") == 0);
+}
+
 static view_properties get_image_view_properties(const xmlNode* node) {
 	view_properties properties;
 	// Setup Default Values
@@ -304,9 +316,27 @@ static view_properties get_image_view_properties(const xmlNode* node) {
 	// Grab Properties
 	xmlChar* scale_type = xmlGetProp(node, XML_SCALE_TYPE);
 	xmlChar* src = xmlGetProp(node, XML_SRC);
+	xmlChar* dpi = xmlGetProp(node, XML_DPI);
+	if (dpi) {
+		properties.image_view.dpi = atof(dpi);
+		free(dpi);
+	}
+	else {
+		properties.image_view.dpi = DEFAULT_DPI;
+	}
 	if (src) {
 		free(properties.image_view.src);
 		properties.image_view.src = strdup(src);
+		// Load in Image!
+		if (ends_with_png(src)) {
+			properties.image_view.image = HPDF_LoadPngImageFromFile(pdf, src);
+		}
+		else if (ends_with_jpg(src)) {
+			properties.image_view.image = HPDF_LoadJpegImageFromFile(pdf, src);
+		}
+		else {
+			error(node->line, INVALID_IMAGE_EXTENSION, src);	
+		}
 		free(src);
 	}
 	if (scale_type) {
