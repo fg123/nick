@@ -112,7 +112,6 @@ void draw(view* v, HPDF_Page page) {
     else if (v->type == TYPE_IMAGE_VIEW) {
 		HPDF_Page_DrawImage(page, 
 			v->properties.image_view.image,
-
             v->layout.x + v->layout.padding_left,
             pageHeight - v->layout.y - (v->layout.height - v->layout.padding_bottom),
             v->layout.width - v->layout.padding_right - v->layout.padding_left,
