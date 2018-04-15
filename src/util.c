@@ -49,7 +49,6 @@ char* format_special_characters(char* src) {
 		}
 	}
 	str[s] = 0;
-	//printf("s: %d, %d\n", s, len);
 	return str;
 }
 

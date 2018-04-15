@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-#define SETTINGS_COUNT 1
 
 #define strdup(x) _strdup(x)
 
@@ -15,7 +14,9 @@ int max(int a, int b);
 char* trim(char* str);
 
 typedef enum {
-	SETTINGS_SHOW_BOUNDING_BOX = 0
+	SETTINGS_SHOW_BOUNDING_BOX = 0,
+	SETTINGS_SILENT = 1,
+	SETTINGS_COUNT
 } settings_flags; 
 
 void set_settings_flag(settings_flags flag);

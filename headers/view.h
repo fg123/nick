@@ -104,8 +104,12 @@ static const char* scale_type_string[] = {
 	"SCALE_CENTER", "SCALE_CENTER_CROP", "SCALE_CENTER_INSIDE", "SCALE_FIT_CENTER"
 };
 
+typedef struct conditional_params {
+	char* if_empty;
+	char* if_not_empty;
+} conditional_params;
+
 typedef struct layout_params {
-	
 	// Defined Types
     size_type width_type;
     size_type height_type;
@@ -135,6 +139,7 @@ struct view {
 	view_type type;
 	view_properties properties;
 	layout_params layout;
+	conditional_params conditions;
 };
 
 // build_view(rootnode) builds a ViewTree from the page node representing

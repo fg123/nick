@@ -1,6 +1,7 @@
 #include "templates.h"
 #include "libxml/tree.h"
 #include "error.h"
+#include "print.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -32,7 +33,7 @@ void add_template(xmlNode* node, int line) {
 	if (template_exist(name)) {
 		error(line, TEMPLATE_ALREADY_EXISTS, name);
 	}
-	printf("Adding Template: %s...\n", name);
+	print_status("Adding Template: %s...\n", name);
 	template_node* new_node = malloc(sizeof(template_node));
 	new_node->name = name;
 	new_node->node = xmlFirstElementChild(node);
@@ -50,6 +51,7 @@ xmlNode* get_template(const xmlChar* name, int line) {
 		curr = curr->next;
 	}
 	error(line, TEMPLATE_NOT_FOUND, name);
+	return NULL;
 }
 
 void free_templates_ll() {

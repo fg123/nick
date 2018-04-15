@@ -318,7 +318,7 @@ static int hcton(char c) {
 		return c - 'a' + 10;
 	}
 	else {
-		printf("Invalid color code occured: %c.\n", c);
+		fprintf(stderr, "Invalid color code occured: %c.\n", c);
 		return 0;
 	}
 }

@@ -49,6 +49,9 @@
 #define XML_GRAVITY_CENTER_H		(const xmlChar*) "center-horizontal"
 #define XML_GRAVITY_CENTER_V		(const xmlChar*) "center-vertical"
 
+#define XML_CONDITION_IF_EMPTY 		(const xmlChar*) "if-empty"
+#define XML_CONDITION_IF_NOT_EMPTY	(const xmlChar*) "if-not-empty"
+
 // XML Properties
 #define XML_ORIENTATION				(const xmlChar*) "orientation"
 #define XML_ORIENTATION_VERTICAL 	(const xmlChar*) "vertical"
@@ -353,6 +356,25 @@ static view_properties get_linear_layout_properties(const xmlNode* node,
 	return properties;
 }
 
+static conditional_params get_conditional_params(const xmlNode* node) {
+	conditional_params conditions;
+	conditions.if_empty = NULL;
+	conditions.if_not_empty = NULL;
+	xmlChar* if_empty = xmlGetProp(node, XML_CONDITION_IF_EMPTY);
+	xmlChar* if_not_empty = xmlGetProp(node, XML_CONDITION_IF_NOT_EMPTY);
+	
+	if (if_empty) {
+		conditions.if_empty = strdup(if_empty);
+		free(if_empty);
+	}
+
+	if (if_not_empty) {
+		conditions.if_not_empty = strdup(if_not_empty);
+		free(if_not_empty);
+	}
+	return conditions;
+}
+
 static layout_params get_layout_params(const xmlNode* node) {
 	layout_params layout;
 	// Setup Default Values
@@ -551,6 +573,7 @@ static view* build_view(xmlNode* node, xmlNode* template_base) {
 		view* new_view = malloc(sizeof(view));
 		new_view->type = get_view_type(node);
 		new_view->layout = get_layout_params(node);
+		new_view->conditions = get_conditional_params(node);
 		// Grab attributes based on type
 		switch (new_view->type) {
 			case TYPE_IMAGE_VIEW:
@@ -595,6 +618,7 @@ static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	view* new_view = malloc(sizeof(view));
 	new_view->type = get_view_type(node);
 	new_view->layout = get_layout_params(node);
+	new_view->conditions = get_conditional_params(node);
 	// Grab attributes based on type
 	switch (new_view->type) {
 		case TYPE_FRAME_LAYOUT:
@@ -643,6 +667,21 @@ static void print_viewlist(viewlist* list) {
 	print_viewlist(list->next);
 }
 
+static void print_conditional_params(conditional_params conditions) {
+	print_indent();
+	printf(BLU "Show Conditions:\n" RESET);
+	indentation++;
+	if (conditions.if_empty) {
+		print_indent();
+		printf(GRN "If Empty: " RESET "%s\n", conditions.if_empty);
+	}
+	if (conditions.if_not_empty) {
+		print_indent();
+		printf(GRN "If Not Empty: " RESET "%s\n", conditions.if_not_empty);
+	} 
+
+	indentation--;
+}
 static void print_layout_params(layout_params layout) {
 	print_indent();
 	printf(BLU "Layout Params:\n" RESET);
@@ -689,6 +728,7 @@ void print_view(view* tree) {
 		printf("LinearLayout\n" RESET);
 		indentation++;
 		print_layout_params(tree->layout);
+		print_conditional_params(tree->conditions);
 		print_indent();
 		printf(GRN "Orientation: " RESET "%s\n", 
 			orientation_string[tree->properties.linear_layout.orientation]);
@@ -699,6 +739,7 @@ void print_view(view* tree) {
 		printf("FrameLayout\n" RESET);
 		indentation++;
 		print_layout_params(tree->layout);
+		print_conditional_params(tree->conditions);
 		print_viewlist(tree->properties.frame_layout.children);
 		indentation--;
     }
@@ -706,6 +747,7 @@ void print_view(view* tree) {
 		printf("TextView\n" RESET);
 		indentation++;
 		print_layout_params(tree->layout);
+		print_conditional_params(tree->conditions);
 		print_indent();
 		printf(GRN "Size: " RESET "%d\n", tree->properties.text_view.size);
 		print_indent();
@@ -732,6 +774,7 @@ void print_view(view* tree) {
 		printf("ImageView\n" RESET);
 		indentation++;
 		print_layout_params(tree->layout);
+		print_conditional_params(tree->conditions);
 		print_indent();
 		printf(GRN "Scale-Type: " RESET "%s\n", 
 			scale_type_string[tree->properties.image_view.scale_type]);
@@ -748,7 +791,12 @@ static void free_viewlist(viewlist* list) {
 	free_viewlist(list->next);
 	free(list);
 }
-	
+
+static void free_conditional_params(conditional_params conditions) {
+	if (conditions.if_empty) free(conditions.if_empty);
+	if (conditions.if_not_empty) free(conditions.if_not_empty);
+}
+
 void free_view(view* tree) {
 	if (!tree) return;
     if (tree->type == TYPE_LINEAR_LAYOUT) {
@@ -764,5 +812,6 @@ void free_view(view* tree) {
 	else if (tree->type == TYPE_IMAGE_VIEW) {
 		free(tree->properties.image_view.src);
 	}
+	free_conditional_params(tree->conditions);
 	free(tree);
 }

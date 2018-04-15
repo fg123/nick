@@ -11,6 +11,7 @@
 #include "fonts.h"
 #include "error.h"
 #include "templates.h"
+#include "print.h"
 
 #ifdef LIBXML_TREE_ENABLED
 
@@ -35,30 +36,44 @@ typedef struct xml_doc_node {
 xml_doc_node* xml_docs = NULL;
 
 void usage() {
-	printf("Usage: nick [file]\n");
+	printf("Usage: nick [file1 file2 ...]\n");
 	printf("	file: a valid Nick XML Layout File\n");
+	printf("Nick can also take file contents through stdin.\n");
+
 }
 
-void error_handler (HPDF_STATUS   error_no,
-	HPDF_STATUS   detail_no,
-	void         *user_data)
-{
-	printf ("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
-		(HPDF_UINT)detail_no);
+void error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void* user_data) {
+	fprintf(stderr, "Internal HPDF Error: %04X, Detail Error: %u\n", (HPDF_UINT) error_no,
+		(HPDF_UINT) detail_no);
 	exit(1);
 }
 
-void process_file(char* filename) {
-	printf("Processing file: %s...\n", filename);
+void process_doc(xmlDoc* doc);
+
+void process_stdin() {
+	print_status("Reading from stdin...");
 	xmlDoc* doc = NULL;
-	xmlNode* root_element = NULL;
+	doc = xmlReadFd(stdin, "", "UTF-8", 0);
+	if (doc == NULL) {
+		fprintf(stderr, "Could not read from stdin!\n");
+		exit(1);
+	}
+	process_doc(doc);
+}
 
+void process_file(char* filename) {
+	print_status("Processing file: %s...\n", filename);
+	xmlDoc* doc = NULL;
 	doc = xmlReadFile(filename, "UTF-8", 0);
-
 	if (doc == NULL) {
 		fprintf(stderr, "Could not parse file!\n");
 		exit(1);
 	}
+	process_doc(doc);
+}
+
+void process_doc(xmlDoc* doc) {
+	xmlNode* root_element = NULL;
 
 	// Add to LL
 	xml_doc_node* doc_node = malloc(sizeof(xml_doc_node));
@@ -86,7 +101,7 @@ void process_file(char* filename) {
 				if (!name) {
 					error(child->line, FONT_REQUIRES_NAME);
 				}
-				printf("Loading Font: %s...\n", name);
+				print_status("Loading Font: %s...\n", name);
 				xmlChar* regular_path = xmlGetProp(child, XML_FONT_REGULAR);
 				xmlChar* bold_path = xmlGetProp(child, XML_FONT_BOLD);
 				xmlChar* italic_path = xmlGetProp(child, XML_FONT_ITALIC);
@@ -111,7 +126,7 @@ void process_file(char* filename) {
 				free(name);
 			}
 			else if (xmlStrEqual(child->name, XML_PAGE)) {
-				printf("Building Page...\n");
+				print_status("Building Page...\n");
 				HPDF_Page page = HPDF_AddPage(pdf);
 				HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_LETTER, HPDF_PAGE_PORTRAIT);
 				// root_element is DOCUMENT, first child is a page, loop through here
@@ -130,16 +145,13 @@ void process_file(char* filename) {
 }
 
 int main(int argc, char **argv) {
-	if (argc == 1) {
-		usage();
-		return 1;
-	}
 	LIBXML_TEST_VERSION
 	pdf = HPDF_New(error_handler, NULL);
 	HPDF_UseUTFEncodings(pdf);
 	HPDF_SetCurrentEncoder(pdf, "UTF-8");
 	char* write_to_name = NULL;
 	fonts_init();
+	bool processed_file = false;
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			if (strcmp("-b", argv[i]) == 0 ||  
@@ -150,15 +162,24 @@ int main(int argc, char **argv) {
 				write_to_name = argv[i + 1];
 				i++;
 			}
+			else if (strcmp("-s", argv[i]) == 0 ||
+				strcmp("--silent", argv[i]) == 0) {
+				set_settings_flag(SETTINGS_SILENT);
+			}
 			else {
 				usage();
 				exit(1);
 			}
 		}
 		else {
+			processed_file = true;
 			process_file(argv[i]);
 		}
     }
+
+	if (!processed_file) {
+		process_stdin();
+	}
 
 	free_templates_ll();
 
@@ -173,11 +194,11 @@ int main(int argc, char **argv) {
 	if (!write_to_name) {
 		write_to_name = "out.pdf";
 	}
-	printf("Writing to file: %s...\n", write_to_name);
+	print_status("Writing to file: %s...\n", write_to_name);
 	HPDF_SaveToFile(pdf, write_to_name);
 	HPDF_Free(pdf);
 	free_fonts_ll();
-	printf("Done!\n");
+	print_status("Done!\n");
 	return 0;
 }
 #else

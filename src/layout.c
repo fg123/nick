@@ -22,6 +22,12 @@ static float get_full_height(view* v) {
     v->layout.margin_bottom + v->layout.border_top + v->layout.border_bottom;
 }
 
+static void hide_view(view* v) {
+    v->layout.width = 0;
+    v->layout.height = 0;
+    v->layout.width_type = SIZE_EXACT;
+    v->layout.height_type = SIZE_EXACT;
+}
 static void measure(view* v, float max_width, float max_height) {
     double desired_height = 0;
     double desired_width = 0;
@@ -31,6 +37,18 @@ static void measure(view* v, float max_width, float max_height) {
     double height_padding = v->layout.padding_top + v->layout.padding_bottom;
     max_width -= width_margin;
     max_height -= height_margin;
+
+    // Show view only if empty
+    if (v->conditions.if_empty && strcmp(v->conditions.if_empty, "") != 0) {
+        hide_view(v);
+        return;
+    }
+
+    // Show view only if not empty
+    if (v->conditions.if_not_empty && strcmp(v->conditions.if_not_empty, "") == 0) {
+        hide_view(v);
+        return;
+    }
 
     if (v->type == TYPE_TEXT_VIEW) {
         int lines = 1;
@@ -61,7 +79,7 @@ static void measure(view* v, float max_width, float max_height) {
             int length = strlen(line);
             while (length > max_char) {
                 if (max_char == 0) {
-                    printf("Fuck %s %f\n", text, max_width);
+                    //printf("Fuck %s %f\n", text, max_width);
                     exit(1);
                 }
                 // Does not fit! Take the first max char items and pull back
