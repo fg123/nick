@@ -16,6 +16,7 @@
 #define TEMPLATE_NO_NAME_ATTR "Templates must have a name attribute!"
 #define TEMPLATE_ALREADY_EXISTS "Template %s already exists!"
 #define TEMPLATE_NOT_FOUND "Template %s was not found!"
+#define INVALID_IMAGE_EXTENSION "Image %s must be JPEG or PNG"
 
 void error(int line, char *message, ...);
 

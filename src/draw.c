@@ -3,6 +3,8 @@
 #include "util.h"
 #include "color.h"
 #include "print.h"
+#include "pdf.h"
+#include <string.h>
 
 static void set_page_color(HPDF_Page page, rgb c) {
     HPDF_Page_SetRGBFill(page, c.red, c.green, c.blue);
@@ -113,8 +115,13 @@ void draw(view* v, HPDF_Page page) {
         }
     }
     else if (v->type == TYPE_IMAGE_VIEW) {
-
-    }
+		HPDF_Page_DrawImage(page, 
+			v->properties.image_view.image,
+            v->layout.x + v->layout.padding_left,
+            pageHeight - v->layout.y - (v->layout.height - v->layout.padding_bottom),
+            v->layout.width - v->layout.padding_right - v->layout.padding_left,
+            v->layout.height - v->layout.padding_bottom - v->layout.padding_top);
+	}
     else if (v->type == TYPE_LINEAR_LAYOUT) {
         viewlist* child = v->properties.linear_layout.children;
         while (child) {

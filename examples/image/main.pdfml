@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<Page>
+		<LinearLayout width="fill" height="fill">
+			<ImageView src="Giraffe.jpg" dpi="144" />
+			<ImageView src="Tardis.png" dpi="144" />
+		</LinearLayout>
+	</Page>
+</Document>

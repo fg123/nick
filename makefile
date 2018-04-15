@@ -5,8 +5,8 @@ ODIR = build
 BINDIR = bin
 SRCDIR = src
 INCDIR = headers
-CFLAGS=-I $(INCDIR) -L lib/ -lhpdf -lxml2 -lz -lm -g 
-CFLAGSNOLINK = -I $(INCDIR) -lxml2 -lhpdf -g 
+CFLAGS=-I $(INCDIR) -L lib/ -lhpdf -lxml2 -lz -lm -g -lpng 
+CFLAGSNOLINK = -I $(INCDIR) -lxml2 -lhpdf -g -lpng 
 
 _DEPS = view.h error.h verify.h util.h layout.h pdf.h draw.h color.h fonts.h templates.h print.h
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
