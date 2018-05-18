@@ -53,7 +53,7 @@ void process_doc(xmlDoc* doc);
 void process_stdin() {
 	print_status("Reading from stdin...");
 	xmlDoc* doc = NULL;
-	doc = xmlReadFd(stdin, "", "UTF-8", 0);
+	doc = xmlReadFd(stdin->_fileno, "", "UTF-8", 0);
 	if (doc == NULL) {
 		fprintf(stderr, "Could not read from stdin!\n");
 		exit(1);
