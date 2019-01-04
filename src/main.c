@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "libxml/parser.h"
 #include "libxml/tree.h"
 #include "view.h"
@@ -53,7 +54,7 @@ void process_doc(xmlDoc* doc);
 void process_stdin() {
 	print_status("Reading from stdin...");
 	xmlDoc* doc = NULL;
-	doc = xmlReadFd(stdin->_fileno, "", "UTF-8", 0);
+	doc = xmlReadFd(STDIN_FILENO, "", "UTF-8", 0);
 	if (doc == NULL) {
 		fprintf(stderr, "Could not read from stdin!\n");
 		exit(1);
@@ -87,7 +88,7 @@ void process_doc(xmlDoc* doc) {
 		fprintf(stderr, "Document of the wrong type, your root node must be a 'Document' object!\n");
 		exit(1);
 	}
-	
+
 	if (!pdf) {
 		fprintf(stderr, "Cannot create pdf object.\n");
 		exit(1);
@@ -133,7 +134,7 @@ void process_doc(xmlDoc* doc) {
 				view* root = build_page(child);
 				measure_and_layout(root);
 				// print_view(root);
-			
+
 				draw(root, page);
 				free_view(root);
 			}
@@ -154,7 +155,7 @@ int main(int argc, char **argv) {
 	bool processed_file = false;
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
-			if (strcmp("-b", argv[i]) == 0 ||  
+			if (strcmp("-b", argv[i]) == 0 ||
 				strcmp("--show-bounding-box", argv[i]) == 0) {
 				set_settings_flag(SETTINGS_SHOW_BOUNDING_BOX);
 			}
@@ -187,9 +188,9 @@ int main(int argc, char **argv) {
 		xmlFreeDoc(xml_docs->elem);
 		xml_doc_node* next = xml_docs->next;
 		free(xml_docs);
-		xml_docs = next;	
+		xml_docs = next;
 	}
-	
+
 	xmlCleanupParser();
 	if (!write_to_name) {
 		write_to_name = "out.pdf";
