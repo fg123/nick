@@ -2,14 +2,38 @@
 #include "util.h"
 #include "pdf.h"
 #include "libpdf/hpdf.h"
+#include "print.h"
 #include <stdbool.h>
 #include <string.h>
 
-static bool is_viewgroup(view* v) {
+static float max_page_height = 0;
+static int max_pages = 0;
+static float page_start_x, page_start_y;
+double* page_boundaries = 0;
+static int page_boundary_capacity = 0;
+
+static bool page_boundary_resize(int page) {
+	if (page >= page_boundary_capacity) {
+		int old = page_boundary_capacity;
+		if (page_boundary_capacity == 0) {
+			page_boundary_capacity = 16;
+			page_boundaries = calloc(page_boundary_capacity, sizeof(*page_boundaries));
+		}
+		else {
+			page_boundary_capacity *= 2;
+			page_boundaries = realloc(page_boundaries, page_boundary_capacity * sizeof(*page_boundaries));
+		}
+		for (int i = old; i < page_boundary_capacity; i++) {
+			page_boundaries[i] = INT_MAX;
+		}
+	}
+}
+
+bool is_viewgroup(view* v) {
 	return v->type == TYPE_LINEAR_LAYOUT || v->type == TYPE_FRAME_LAYOUT;
 }
 
-static bool is_view(view* v) {
+bool is_view(view* v) {
 	return !is_viewgroup(v);
 }
 
@@ -29,6 +53,7 @@ static void hide_view(view* v) {
     v->layout.width_type = SIZE_EXACT;
     v->layout.height_type = SIZE_EXACT;
 }
+
 static void measure(view* v, float max_width, float max_height) {
 	double desired_height = 0;
 	double desired_width = 0;
@@ -70,13 +95,13 @@ static void measure(view* v, float max_width, float max_height) {
 
         while (line) {
             int max_char =
-            HPDF_Font_MeasureText(v->properties.text_view.font,
-                text + index,
-                strlen(text + index),
-                max_width,
-                v->properties.text_view.size,
-                0, 0, HPDF_TRUE, NULL);
-            //printf("Line: %s\n", line);
+				HPDF_Font_MeasureText(v->properties.text_view.font,
+					text + index,
+					strlen(text + index),
+					max_width,
+					v->properties.text_view.size,
+					0, 0, HPDF_TRUE, NULL);
+            // printf("Line: %s\n", line);
             int length = strlen(line);
             while (length > max_char) {
                 if (max_char == 0) {
@@ -108,7 +133,7 @@ static void measure(view* v, float max_width, float max_height) {
                         lines++;
                         index += i + 1;
                         //insert_newline(&text, index++);
-                        length -= i - 1;
+                        length -= i + 1;
                         break;
                     }
                 }
@@ -218,12 +243,41 @@ static void offset_position(view* v, float x, float y) {
 	}
 }
 
+static double dmod(double a, int b) {
+	return a - (int)(a / (double)b) * b;
+}
+
 static void position(view* v, float x, float y) {
+	float full_width = ( v->layout.margin_top + v->layout.margin_bottom + v->layout.height);
+	if (full_width < max_page_height) {
+		v->layout.page = (y + v->layout.margin_top + v->layout.margin_bottom + v->layout.height) / max_page_height;
+	}
+	else {
+		if (is_view) {
+			print_status("Warning, view height exceeds page allowed height\n");
+		}
+		v->layout.page = y / max_page_height;
+	}
+
+
+	if (v->layout.page >= max_pages) {
+		max_pages = v->layout.page;
+		page_boundary_resize(v->layout.page);
+	}
+
+	// Only first page has built in page_start_y number
+	double y_relative_page = y;
+
+	if (y_relative_page < page_boundaries[v->layout.page]) {
+		page_boundaries[v->layout.page] = y_relative_page;
+	}
+
 	x += v->layout.margin_left;
 	y += v->layout.margin_top;
 
 	v->layout.x = x;
-	v->layout.y = y;
+	v->layout.y = y + page_start_y;
+
 	float vertical_padding = v->layout.padding_top + v->layout.padding_bottom;
 	float horizontal_padding = v->layout.padding_left + v->layout.padding_right;
 	float tlx = x + v->layout.padding_left;
@@ -314,13 +368,19 @@ static void position(view* v, float x, float y) {
 	}
 }
 
-static void layout(view* v, float max_width, float max_height) {
+static void layout(view* v, float max_width, float max_height, float start_x, float start_y) {
 	// Measure Children and Position Them
 	measure(v, max_width, max_height);
-	position(v, 0, 0);
+	// Don't pass start_y in, the page algorithm will add that
+	position(v, start_x, 0);
 }
 
 // takes a view tree and generates width, height, x and y values
-void measure_and_layout(view* tree) {
-	return layout(tree, (int)(72.0 * 8.5), 72 * 11);
+int measure_and_layout(view* tree, int page_width, int page_height, int start_x, int start_y) {
+	max_pages = 0;
+	max_page_height = page_height;
+	page_start_x = start_x;
+	page_start_y = start_y;
+	layout(tree, page_width, page_height, start_x, start_y);
+	return max_pages + 1;
 }

@@ -82,20 +82,20 @@
 static int indentation = 0;
 
 // Forward Declarations
-static view *build_view(xmlNode*, xmlNode*);
+view *build_view(xmlNode*, xmlNode*);
 static view *build_viewgroup(xmlNode*, xmlNode*);
 
-static bool is_viewgroup(const xmlNode* node) {
+bool is_viewgroup_xml(const xmlNode* node) {
 	return xmlStrEqual(node->name, XML_FRAME_LAYOUT)
 	|| xmlStrEqual(node->name, XML_LINEAR_LAYOUT);
 }
 
-static bool is_view(const xmlNode* node) {
+bool is_view_xml(const xmlNode* node) {
 	return xmlStrEqual(node->name, XML_TEXT_VIEW)
 	|| xmlStrEqual(node->name, XML_IMAGE_VIEW);
 }
 
-static void fill_in_substitution(char** str_p, int start, int end, 
+static void fill_in_substitution(char** str_p, int start, int end,
 	char* replace_with) {
 	// Example: "Hello $testing whee" replace "Felix"
 	//           start-^       ^-end
@@ -122,7 +122,7 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 	for (xmlAttr* attr = node->properties; attr; attr = attr->next) {
 		char* value = xmlGetProp(node, attr->name);
 		if (!value) {
-			fprintf(stderr, "Internal Error: %s attr not found...\n", 
+			fprintf(stderr, "Internal Error: %s attr not found...\n",
 				attr->name);
 			exit(1);
 		}
@@ -156,7 +156,7 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 	// Shouldn't this be refactored to only check for itself? Idk why it broke
 	//  but OK ...
 	for (xmlNode* curr = node->children; curr; curr = curr->next) {
-		if (curr->type == XML_ELEMENT_NODE && 
+		if (curr->type == XML_ELEMENT_NODE &&
 				xmlStrEqual(curr->name, XML_CONTENT)) {
 			xmlNode* content_node_p = curr;
 			// Link in each content from template_base
@@ -203,7 +203,7 @@ static gravity_type get_gravity_type(char* string, int line) {
 	}
 }
 
-static view_properties get_frame_layout_properties(const xmlNode* node, 
+static view_properties get_frame_layout_properties(const xmlNode* node,
 		viewlist* child_list) {
 	view_properties properties;
 	// Setup Default Values
@@ -266,7 +266,7 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 			properties.text_view.style = STYLE_BOLDITALIC;
 		}
 		else {
-			// Maybe Error Handle, but we can just ignore invalid values	
+			// Maybe Error Handle, but we can just ignore invalid values
 		}
 		free(text_style);
 	}
@@ -284,17 +284,17 @@ static view_properties get_text_view_properties(const xmlNode* node) {
 			properties.text_view.align = ALIGN_JUSTIFY;
 		}
 		else {
-			// Maybe Error Handle, but we can just ignore invalid values	
+			// Maybe Error Handle, but we can just ignore invalid values
 		}
 		free(align);
 	}
 	if (font) {
-		properties.text_view.font = 
+		properties.text_view.font =
 			get_font(font, properties.text_view.style, node->line);
 		free(font);
 	}
 	else {
-		properties.text_view.font = 
+		properties.text_view.font =
 			get_font("Helvetica", properties.text_view.style, node->line);
 	}
 	return properties;
@@ -305,7 +305,7 @@ bool ends_with_png(const char* name) {
 	return (strcmp(&name[len - 3], "png") == 0);
 }
 
-bool ends_with_jpg(const char* name) { 
+bool ends_with_jpg(const char* name) {
 	size_t len = strlen(name);
 	return (strcmp(&name[len - 3], "jpg") == 0 ||
 	        strcmp(&name[len - 4], "jpeg") == 0);
@@ -338,7 +338,7 @@ static view_properties get_image_view_properties(const xmlNode* node) {
 			properties.image_view.image = HPDF_LoadJpegImageFromFile(pdf, src);
 		}
 		else {
-			error(node->line, INVALID_IMAGE_EXTENSION, src);	
+			error(node->line, INVALID_IMAGE_EXTENSION, src);
 		}
 		free(src);
 	}
@@ -356,14 +356,14 @@ static view_properties get_image_view_properties(const xmlNode* node) {
 			properties.image_view.scale_type = SCALE_FIT_CENTER;
 		}
 		else {
-			// Maybe Error Handle, but we can just ignore invalid values	
+			// Maybe Error Handle, but we can just ignore invalid values
 		}
 		free(scale_type);
 	}
 	return properties;
 }
 
-static view_properties get_linear_layout_properties(const xmlNode* node, 
+static view_properties get_linear_layout_properties(const xmlNode* node,
 		viewlist* child_list) {
 	view_properties properties;
 	// Setup Default Values
@@ -379,7 +379,7 @@ static view_properties get_linear_layout_properties(const xmlNode* node,
 			properties.linear_layout.orientation = ORIENTATION_VERTICAL;
 		}
 		else {
-			// Maybe Error Handle, but we can just ignore invalid values	
+			// Maybe Error Handle, but we can just ignore invalid values
 		}
 		free(orientation);
 	}
@@ -392,7 +392,7 @@ static conditional_params get_conditional_params(const xmlNode* node) {
 	conditions.if_not_empty = NULL;
 	xmlChar* if_empty = xmlGetProp(node, XML_CONDITION_IF_EMPTY);
 	xmlChar* if_not_empty = xmlGetProp(node, XML_CONDITION_IF_NOT_EMPTY);
-	
+
 	if (if_empty) {
 		conditions.if_empty = strdup(if_empty);
 		free(if_empty);
@@ -405,7 +405,7 @@ static conditional_params get_conditional_params(const xmlNode* node) {
 	return conditions;
 }
 
-static layout_params get_layout_params(const xmlNode* node) {
+layout_params get_layout_params(const xmlNode* node) {
 	layout_params layout;
 	// Setup Default Values
 	layout.margin_left = 0;
@@ -548,7 +548,7 @@ static layout_params get_layout_params(const xmlNode* node) {
 		char* token;
 		// Separate by Pipe, will destroy the string
 		token = strtok(gravity, "|");
-		while (token) {			
+		while (token) {
 		   layout.gravity |= get_gravity_type(token, node->line);
 		   token = strtok(NULL, "|");
 		}
@@ -592,14 +592,14 @@ static void print_element_names(xmlNode* a_node) {
 	}
 }
 
-static view* build_view(xmlNode* node, xmlNode* template_base) {
+view* build_view(xmlNode* node, xmlNode* template_base) {
 	if (template_base) {
 		fill_template_substitutions(node, template_base);
 	}
-	if (is_viewgroup(node)) {
+	if (is_viewgroup_xml(node)) {
 		return build_viewgroup(node, template_base);
 	}
-	if (is_view(node)) {
+	if (is_view_xml(node)) {
 		view* new_view = malloc(sizeof(view));
 		new_view->type = get_view_type(node);
 		new_view->layout = get_layout_params(node);
@@ -630,14 +630,14 @@ static view* build_view(xmlNode* node, xmlNode* template_base) {
 static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	viewlist* child_list = NULL;
 	viewlist** head_ptr = &child_list;
-	for (xmlNode* curr_child = node->children; 
-		 curr_child; 
+	for (xmlNode* curr_child = node->children;
+		 curr_child;
 		 curr_child = curr_child->next) {
 		if (xmlIsBlankNode(curr_child)) continue;
 		if (curr_child->type == XML_ELEMENT_NODE) {
-			/*error(curr_child->line, EXPECTED_ELEMENT_IN_VIEWGROUP, 
+			/*error(curr_child->line, EXPECTED_ELEMENT_IN_VIEWGROUP,
 				curr_child->type);*/
-		
+
 			viewlist* new_child = malloc(sizeof(viewlist));
 			new_child->elem = build_view(curr_child, template_base);
 			new_child->next = NULL;
@@ -652,11 +652,11 @@ static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	// Grab attributes based on type
 	switch (new_view->type) {
 		case TYPE_FRAME_LAYOUT:
-			new_view->properties = 
+			new_view->properties =
 				get_frame_layout_properties(node, child_list);
 			break;
 		case TYPE_LINEAR_LAYOUT:
-			new_view->properties = 
+			new_view->properties =
 				get_linear_layout_properties(node, child_list);
 			break;
 	}
@@ -667,12 +667,12 @@ static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 //   then pass that into build_viewgroup.
 view* build_page(xmlNode* pagenode) {
 	// Node is a Page Node
-	long element_count = xmlChildElementCount(pagenode);	
+	long element_count = xmlChildElementCount(pagenode);
 	if (element_count != 1) {
 		error(pagenode->line, PAGE_MUST_HAVE_ONLY_ONE, element_count);
 	}
 	xmlNode* root_child = xmlFirstElementChild(pagenode);
-	if (!is_viewgroup(root_child)) {
+	if (!is_viewgroup_xml(root_child)) {
 		error(pagenode->line, PAGE_MUST_START_VIEWGROUP);
 	}
 	return build_view(root_child, NULL);
@@ -708,7 +708,7 @@ static void print_conditional_params(conditional_params conditions) {
 	if (conditions.if_not_empty) {
 		print_indent();
 		printf(GRN "If Not Empty: " RESET "%s\n", conditions.if_not_empty);
-	} 
+	}
 
 	indentation--;
 }
@@ -721,7 +721,7 @@ static void print_layout_params(layout_params layout) {
 		printf(GRN "Width: " RESET "%f\n", layout.width);
 	}
 	else {
-		printf(GRN "Width: " RESET "%s\n", 
+		printf(GRN "Width: " RESET "%s\n",
 			size_type_string[layout.width_type]);
 	}
 	print_indent();
@@ -729,17 +729,17 @@ static void print_layout_params(layout_params layout) {
 		printf(GRN "Height: " RESET "%f\n", layout.height);
 	}
 	else {
-		printf(GRN "Height: " RESET "%s\n", 
+		printf(GRN "Height: " RESET "%s\n",
 			size_type_string[layout.height_type]);
 	}
 	print_indent();
-	printf(GRN "Margin: " RESET "%f, %f, %f, %f\n", layout.margin_left, 
+	printf(GRN "Margin: " RESET "%f, %f, %f, %f\n", layout.margin_left,
 		layout.margin_right, layout.margin_top, layout.margin_bottom);
 	print_indent();
-	printf(GRN "Border: " RESET "%f, %f, %f, %f\n", layout.border_left, 
+	printf(GRN "Border: " RESET "%f, %f, %f, %f\n", layout.border_left,
 		layout.border_right, layout.border_top, layout.border_bottom);
 	print_indent();
-	printf(GRN "Padding: " RESET "%f, %f, %f, %f\n", layout.padding_left, 
+	printf(GRN "Padding: " RESET "%f, %f, %f, %f\n", layout.padding_left,
 		layout.padding_right, layout.padding_top, layout.padding_bottom);
 	print_indent();
 	printf(GRN "Position: " RESET "%f, %f\n", layout.x, layout.y);
@@ -760,7 +760,7 @@ void print_view(view* tree) {
 		print_layout_params(tree->layout);
 		print_conditional_params(tree->conditions);
 		print_indent();
-		printf(GRN "Orientation: " RESET "%s\n", 
+		printf(GRN "Orientation: " RESET "%s\n",
 			orientation_string[tree->properties.linear_layout.orientation]);
 		print_viewlist(tree->properties.linear_layout.children);
 		indentation--;
@@ -781,10 +781,10 @@ void print_view(view* tree) {
 		print_indent();
 		printf(GRN "Size: " RESET "%d\n", tree->properties.text_view.size);
 		print_indent();
-		printf(GRN "Style: " RESET "%s\n", 
+		printf(GRN "Style: " RESET "%s\n",
 			style_string[tree->properties.text_view.style]);
 		print_indent();
-		printf(GRN "Font: " RESET "%s\n", 
+		printf(GRN "Font: " RESET "%s\n",
 			HPDF_Font_GetFontName(tree->properties.text_view.font));
 		print_indent();
 		printf(GRN "Text: " RESET "%s\n", tree->properties.text_view.text);
@@ -806,10 +806,10 @@ void print_view(view* tree) {
 		print_layout_params(tree->layout);
 		print_conditional_params(tree->conditions);
 		print_indent();
-		printf(GRN "Scale-Type: " RESET "%s\n", 
+		printf(GRN "Scale-Type: " RESET "%s\n",
 			scale_type_string[tree->properties.image_view.scale_type]);
 		print_indent();
-		printf(GRN "Src: " RESET "%s\n", tree->properties.image_view.src);		
+		printf(GRN "Src: " RESET "%s\n", tree->properties.image_view.src);
 		indentation--;
 	}
 	printf(RESET);

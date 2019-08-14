@@ -3,6 +3,7 @@
 #include "util.h"
 #include "color.h"
 #include "print.h"
+#include "layout.h"
 #include "pdf.h"
 #include <string.h>
 
@@ -18,12 +19,21 @@ static void draw_rectangle(HPDF_Page page, rgb c,
     HPDF_Page_Fill(page);
 }
 
-void draw(view* v, HPDF_Page page) {
+void draw(view* v, HPDF_Page* pages, int pagec) {
     if (v->layout.height == 0 || v->layout.width == 0) {
         return;
     }
 
+    if (v->layout.page >= pagec) {
+        v->layout.page = pagec - 1;
+    }
+
+    HPDF_Page page = pages[v->layout.page];
     int pageHeight = HPDF_Page_GetHeight(page);
+
+    // Move it to correct page
+    v->layout.y -= page_boundaries[v->layout.page];
+
     if (get_settings_flag(SETTINGS_SHOW_BOUNDING_BOX)) {
         draw_rectangle(page, COLOR_MARGIN,
             v->layout.x - v->layout.margin_left,
@@ -115,7 +125,7 @@ void draw(view* v, HPDF_Page page) {
         }
     }
     else if (v->type == TYPE_IMAGE_VIEW) {
-		HPDF_Page_DrawImage(page, 
+		HPDF_Page_DrawImage(page,
 			v->properties.image_view.image,
             v->layout.x + v->layout.padding_left,
             pageHeight - v->layout.y - (v->layout.height - v->layout.padding_bottom),
@@ -125,14 +135,14 @@ void draw(view* v, HPDF_Page page) {
     else if (v->type == TYPE_LINEAR_LAYOUT) {
         viewlist* child = v->properties.linear_layout.children;
         while (child) {
-            draw(child->elem, page);
+            draw(child->elem, pages, pagec);
             child = child->next;
         }
     }
     else if (v->type == TYPE_FRAME_LAYOUT) {
         viewlist* child = v->properties.linear_layout.children;
         while (child) {
-            draw(child->elem, page);
+            draw(child->elem, pages, pagec);
             child = child->next;
         }
     }

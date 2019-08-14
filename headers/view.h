@@ -5,11 +5,12 @@
 #include "libxml/tree.h"
 #include "fonts.h"
 #include "color.h"
+#include <stdbool.h>
 
 // view.h: interface for a View object as well as a ViewGroup object
 //   Provides options to build a ViewTree from a XML document, as well as
 //   freeing the ViewTree
- 
+
 typedef enum size_type {
 	SIZE_FILL,
 	SIZE_AUTO,
@@ -31,7 +32,7 @@ typedef enum align_direction {
 typedef enum gravity_type {
 	//GRAVITY_TOP 				= 0x00000001,
 	GRAVITY_BOTTOM 				= 1 << 0,
-	
+
 	//GRAVITY_LEFT 				= 0x00000010,
 	GRAVITY_RIGHT				= 1 << 1,
 
@@ -72,7 +73,7 @@ typedef union {
 				} linear_layout;
 
 	// Singular Views
-	struct {	
+	struct {
 		int size;
 		font_style style;
 		align_direction align;
@@ -82,7 +83,7 @@ typedef union {
 		char* link;
 	} text_view;
 
-	struct {	
+	struct {
 		enum {
 			SCALE_CENTER,
 			SCALE_CENTER_CROP,
@@ -136,6 +137,10 @@ typedef struct layout_params {
 	// Width and Height as well as position will be used in layout and draw
 	double x;
 	double y;
+
+	// Used in layout and draw; calculated page_y is relative to page
+	int page;
+	double page_y;
 } layout_params;
 
 struct view {
@@ -152,7 +157,15 @@ view* build_page(xmlNode* pagenode);
 // print_view(tree) prints out the tree
 void print_view(view* tree);
 
+view* build_view(xmlNode* node, xmlNode* template_base);
+
 // free_view(tree) frees the allocated memory
 void free_view(view* tree);
+
+bool is_viewgroup_xml(const xmlNode* node);
+
+bool is_view_xml(const xmlNode* node);
+
+layout_params get_layout_params(const xmlNode* node);
 
 #endif

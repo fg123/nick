@@ -13,6 +13,7 @@
 #include "error.h"
 #include "templates.h"
 #include "print.h"
+#include "view.h"
 
 #ifdef LIBXML_TREE_ENABLED
 
@@ -82,12 +83,15 @@ void process_doc(xmlDoc* doc) {
 	doc_node->next = xml_docs;
 	xml_docs = doc_node;
 
-	/*Get the root element node */
+	/* Get the root element node */
 	root_element = xmlDocGetRootElement(doc);
 	if (xmlStrcmp(root_element->name, (const xmlChar *) "Document")) {
 		fprintf(stderr, "Document of the wrong type, your root node must be a 'Document' object!\n");
 		exit(1);
 	}
+
+	// Only margin is used here
+	layout_params document_params = get_layout_params(root_element);
 
 	if (!pdf) {
 		fprintf(stderr, "Cannot create pdf object.\n");
@@ -126,16 +130,35 @@ void process_doc(xmlDoc* doc) {
 				}
 				free(name);
 			}
+			else if (is_viewgroup_xml(child)) {
+				view* root = build_view(child, NULL);
+				// TODO(felixguo): Arbitrary Page Height right now
+				int pagec = measure_and_layout(root,
+					(72.0 * 8.5) - document_params.margin_left - document_params.margin_right,
+					(72 * 11) - document_params.margin_top - document_params.margin_bottom,
+					document_params.margin_left,
+					document_params.margin_top);
+
+				HPDF_Page* pages = malloc(pagec * sizeof(*pages));
+
+				for (int i = 0; i < pagec; i++) {
+					pages[i] = HPDF_AddPage(pdf);
+					HPDF_Page_SetSize(pages[i], HPDF_PAGE_SIZE_LETTER, HPDF_PAGE_PORTRAIT);
+				}
+
+				draw(root, pages, pagec);
+				free(pages);
+			}
 			else if (xmlStrEqual(child->name, XML_PAGE)) {
 				print_status("Building Page...\n");
 				HPDF_Page page = HPDF_AddPage(pdf);
 				HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_LETTER, HPDF_PAGE_PORTRAIT);
 				// root_element is DOCUMENT, first child is a page, loop through here
 				view* root = build_page(child);
-				measure_and_layout(root);
+				measure_and_layout(root, HPDF_Page_GetWidth(page), HPDF_Page_GetHeight(page), 0, 0);
 				// print_view(root);
 
-				draw(root, page);
+				draw(root, &page, 1);
 				free_view(root);
 			}
 			else if (xmlStrEqual(child->name, XML_TEMPLATE)) {
