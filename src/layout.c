@@ -253,7 +253,7 @@ static void position(view* v, float x, float y) {
 		v->layout.page = (y + v->layout.margin_top + v->layout.margin_bottom + v->layout.height) / max_page_height;
 	}
 	else {
-		if (is_view) {
+		if (is_view(v)) {
 			print_status("Warning, view height exceeds page allowed height\n");
 		}
 		v->layout.page = y / max_page_height;
