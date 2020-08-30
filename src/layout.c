@@ -53,6 +53,10 @@ static void hide_view(view* v) {
     v->layout.height = 0;
     v->layout.width_type = SIZE_EXACT;
     v->layout.height_type = SIZE_EXACT;
+    v->layout.margin_top = 0;
+    v->layout.margin_bottom = 0;
+    v->layout.margin_left = 0;
+    v->layout.margin_right = 0;
 }
 
 static void measure(view* v, float max_width, float max_height) {
