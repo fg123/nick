@@ -4,6 +4,7 @@
 #include "view.h"
 
 extern double* page_boundaries;
+extern double page_height_no_margin;
 
 // Generates a list of views to draw from the original tree
 int measure_and_layout(view* tree, int page_width, int page_height, int start_x, int start_y);

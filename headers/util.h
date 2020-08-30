@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-
 #define strdup(x) _strdup(x)
 
 char* format_special_characters(char* src);

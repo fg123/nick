@@ -148,6 +148,7 @@ struct view {
 	view_properties properties;
 	layout_params layout;
 	conditional_params conditions;
+	conditional_params template_conditions;
 };
 
 // build_view(rootnode) builds a ViewTree from the page node representing

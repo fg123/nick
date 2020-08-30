@@ -10,6 +10,7 @@ static float max_page_height = 0;
 static int max_pages = 0;
 static float page_start_x, page_start_y;
 double* page_boundaries = 0;
+double page_height_no_margin = 0;
 static int page_boundary_capacity = 0;
 
 static bool page_boundary_resize(int page) {
@@ -63,6 +64,18 @@ static void measure(view* v, float max_width, float max_height) {
 	double height_padding = v->layout.padding_top + v->layout.padding_bottom;
 	max_width -= width_margin + width_padding;
 	max_height -= height_margin + height_padding;
+
+	// Check first for params on the template level
+	if (v->template_conditions.if_empty && strcmp(v->template_conditions.if_empty, "") != 0) {
+        hide_view(v);
+        return;
+    }
+
+    // Show view only if not empty
+    if (v->template_conditions.if_not_empty && strcmp(v->template_conditions.if_not_empty, "") == 0) {
+        hide_view(v);
+        return;
+    }
 
     // Show view only if empty
     if (v->conditions.if_empty && strcmp(v->conditions.if_empty, "") != 0) {
@@ -248,9 +261,9 @@ static double dmod(double a, int b) {
 }
 
 static void position(view* v, float x, float y) {
-	float full_width = ( v->layout.margin_top + v->layout.margin_bottom + v->layout.height);
-	if (full_width < max_page_height) {
-		v->layout.page = (y + v->layout.margin_top + v->layout.margin_bottom + v->layout.height) / max_page_height;
+	float full_height = (v->layout.margin_top + v->layout.margin_bottom + v->layout.height);
+	if (full_height < max_page_height) {
+		v->layout.page = (y + full_height) / max_page_height;
 	}
 	else {
 		if (is_view(v)) {

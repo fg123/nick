@@ -32,7 +32,7 @@ void draw(view* v, HPDF_Page* pages, int pagec) {
     int pageHeight = HPDF_Page_GetHeight(page);
 
     // Move it to correct page
-    v->layout.y -= page_boundaries[v->layout.page];
+    v->layout.y -= v->layout.page * page_height_no_margin;
 
     if (get_settings_flag(SETTINGS_SHOW_BOUNDING_BOX)) {
         draw_rectangle(page, COLOR_MARGIN,

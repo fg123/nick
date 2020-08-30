@@ -5,6 +5,7 @@
 #include "pdf.h"
 #include "util.h"
 #include "templates.h"
+#include "variables.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -96,7 +97,7 @@ bool is_view_xml(const xmlNode* node) {
 }
 
 static void fill_in_substitution(char** str_p, int start, int end,
-	char* replace_with) {
+	const char* replace_with) {
 	// Example: "Hello $testing whee" replace "Felix"
 	//           start-^       ^-end
 	// o_l = 19
@@ -117,7 +118,7 @@ static void fill_in_substitution(char** str_p, int start, int end,
 	free(old);
 }
 
-static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
+static void fill_template_and_variable_substitutions(xmlNode* node, xmlNode* template_base) {
 	if (!node) return;
 	for (xmlAttr* attr = node->properties; attr; attr = attr->next) {
 		char* value = xmlGetProp(node, attr->name);
@@ -137,12 +138,21 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 				char old = value[end];
 				// Make a fake string pointer ending at the name of the var
 				value[end] = 0;
-				char* replace_with = xmlGetProp(template_base, &value[start + 1]);
+				char* replace_with = NULL;
+				if (template_base) {
+					replace_with = xmlGetProp(template_base, &value[start + 1]);
+				}
+				const char* maybe_var = get_variable(&value[start + 1]);
 				value[end] = old;
 				if (replace_with) {
 					i = start + strlen(replace_with) - 1;
 					fill_in_substitution(&value, start, end, replace_with);
 					free(replace_with);
+				}
+				else if (maybe_var) {
+					i = start + strlen(maybe_var) - 1;
+					fill_in_substitution(&value, start, end, maybe_var);
+					// Don't need to free since this is internally given
 				}
 				else {
 					i = start - 1;
@@ -153,24 +163,26 @@ static void fill_template_substitutions(xmlNode* node, xmlNode* template_base) {
 		xmlSetProp(node, attr->name, value);
 		free(value);
 	}
-	// Shouldn't this be refactored to only check for itself? Idk why it broke
-	//  but OK ...
-	for (xmlNode* curr = node->children; curr; curr = curr->next) {
-		if (curr->type == XML_ELEMENT_NODE &&
-				xmlStrEqual(curr->name, XML_CONTENT)) {
-			xmlNode* content_node_p = curr;
-			// Link in each content from template_base
-			xmlNode* child = template_base->children;
-			while (child) {
-				if (child->type == XML_ELEMENT_NODE) {
-					xmlNode* child_dup = xmlCopyNode(child, 1);
-					curr = xmlAddNextSibling(curr, child_dup);
-					//xmlFreeNode(child_dup);
+	if (template_base) {
+		// Shouldn't this be refactored to only check for itself? Idk why it broke
+		//  but OK ...
+		for (xmlNode* curr = node->children; curr; curr = curr->next) {
+			if (curr->type == XML_ELEMENT_NODE &&
+					xmlStrEqual(curr->name, XML_CONTENT)) {
+				xmlNode* content_node_p = curr;
+				// Link in each content from template_base
+				xmlNode* child = template_base->children;
+				while (child) {
+					if (child->type == XML_ELEMENT_NODE) {
+						xmlNode* child_dup = xmlCopyNode(child, 1);
+						curr = xmlAddNextSibling(curr, child_dup);
+						//xmlFreeNode(child_dup);
+					}
+					child = child->next;
 				}
-				child = child->next;
+				xmlUnlinkNode(content_node_p);
+				xmlFreeNode(content_node_p);
 			}
-			xmlUnlinkNode(content_node_p);
-			xmlFreeNode(content_node_p);
 		}
 	}
 }
@@ -390,17 +402,19 @@ static conditional_params get_conditional_params(const xmlNode* node) {
 	conditional_params conditions;
 	conditions.if_empty = NULL;
 	conditions.if_not_empty = NULL;
-	xmlChar* if_empty = xmlGetProp(node, XML_CONDITION_IF_EMPTY);
-	xmlChar* if_not_empty = xmlGetProp(node, XML_CONDITION_IF_NOT_EMPTY);
-
-	if (if_empty) {
-		conditions.if_empty = strdup(if_empty);
-		free(if_empty);
-	}
-
-	if (if_not_empty) {
-		conditions.if_not_empty = strdup(if_not_empty);
-		free(if_not_empty);
+	if (node) {
+		xmlChar* if_empty = xmlGetProp(node, XML_CONDITION_IF_EMPTY);
+		xmlChar* if_not_empty = xmlGetProp(node, XML_CONDITION_IF_NOT_EMPTY);
+	
+		if (if_empty) {
+			conditions.if_empty = strdup(if_empty);
+			free(if_empty);
+		}
+	
+		if (if_not_empty) {
+			conditions.if_not_empty = strdup(if_not_empty);
+			free(if_not_empty);
+		}
 	}
 	return conditions;
 }
@@ -593,9 +607,7 @@ static void print_element_names(xmlNode* a_node) {
 }
 
 view* build_view(xmlNode* node, xmlNode* template_base) {
-	if (template_base) {
-		fill_template_substitutions(node, template_base);
-	}
+	fill_template_and_variable_substitutions(node, template_base);
 	if (is_viewgroup_xml(node)) {
 		return build_viewgroup(node, template_base);
 	}
@@ -604,6 +616,8 @@ view* build_view(xmlNode* node, xmlNode* template_base) {
 		new_view->type = get_view_type(node);
 		new_view->layout = get_layout_params(node);
 		new_view->conditions = get_conditional_params(node);
+		new_view->template_conditions = get_conditional_params(NULL);
+
 		// Grab attributes based on type
 		switch (new_view->type) {
 			case TYPE_IMAGE_VIEW:
@@ -619,6 +633,8 @@ view* build_view(xmlNode* node, xmlNode* template_base) {
 		// xmlCopyNode so modifications are built properly
 		xmlNode* new_copy = xmlCopyNode(get_template(node->name, node->line), 1);
 		view* v = build_view(new_copy, node);
+		// Get the params of the original node
+		v->template_conditions = get_conditional_params(node);
 		xmlFreeNode(new_copy);
 		return v;
 	}
@@ -649,6 +665,7 @@ static view* build_viewgroup(xmlNode* node, xmlNode* template_base) {
 	new_view->type = get_view_type(node);
 	new_view->layout = get_layout_params(node);
 	new_view->conditions = get_conditional_params(node);
+	new_view->template_conditions = get_conditional_params(NULL);
 	// Grab attributes based on type
 	switch (new_view->type) {
 		case TYPE_FRAME_LAYOUT:

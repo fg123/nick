@@ -14,6 +14,7 @@
 #include "templates.h"
 #include "print.h"
 #include "view.h"
+#include "variables.h"
 
 #ifdef LIBXML_TREE_ENABLED
 
@@ -38,8 +39,11 @@ typedef struct xml_doc_node {
 xml_doc_node* xml_docs = NULL;
 
 void usage() {
-	printf("Usage: nick [file1 file2 ...]\n");
+	printf("Usage: nick [file1 file2 ...] [flags]\n");
 	printf("	file: a valid Nick XML Layout File\n");
+	printf("	-b, --show-bounding-box: showing layout bounding box\n");
+	printf("	-s: silent mode\n");
+	printf("	-o file: optional output file\n");
 	printf("Nick can also take file contents through stdin.\n");
 
 }
@@ -48,6 +52,10 @@ void error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void* user_data
 	fprintf(stderr, "Internal HPDF Error: %04X, Detail Error: %u\n", (HPDF_UINT) error_no,
 		(HPDF_UINT) detail_no);
 	exit(1);
+}
+
+bool file_exist (const char* name) {
+	return access(name, R_OK) != -1;
 }
 
 void process_doc(xmlDoc* doc);
@@ -145,6 +153,8 @@ void process_doc(xmlDoc* doc) {
 					pages[i] = HPDF_AddPage(pdf);
 					HPDF_Page_SetSize(pages[i], HPDF_PAGE_SIZE_LETTER, HPDF_PAGE_PORTRAIT);
 				}
+				page_height_no_margin = HPDF_Page_GetHeight(pages[0]) -
+					document_params.margin_top - document_params.margin_bottom;
 
 				draw(root, pages, pagec);
 				free(pages);
@@ -168,12 +178,21 @@ void process_doc(xmlDoc* doc) {
 	}
 }
 
+bool is_variable_set(const char* arg) {
+	while (arg[0]) {
+		if (arg[0] == '=') return true;
+		arg++;
+	}
+	return false;
+}
+
 int main(int argc, char **argv) {
 	LIBXML_TEST_VERSION
 	pdf = HPDF_New(error_handler, NULL);
 	HPDF_UseUTFEncodings(pdf);
 	HPDF_SetCurrentEncoder(pdf, "UTF-8");
 	char* write_to_name = NULL;
+	variables_init();
 	fonts_init();
 	bool processed_file = false;
 	for (int i = 1; i < argc; i++) {
@@ -195,9 +214,20 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 		}
-		else {
+		else if (file_exist(argv[i])) {
 			processed_file = true;
 			process_file(argv[i]);
+		}
+		else if (is_variable_set(argv[i])) {
+			char* arg = argv[i];
+			size_t j = 0;
+			while (arg[j] != '=') {
+				j++;
+			}
+			arg[j] = 0;
+			// Replace the equal sign so we can strdup
+			add_variable(argv[i], &arg[j + 1]);
+			arg[j] = '=';
 		}
     }
 
@@ -222,6 +252,7 @@ int main(int argc, char **argv) {
 	HPDF_SaveToFile(pdf, write_to_name);
 	HPDF_Free(pdf);
 	free_fonts_ll();
+	variables_destroy();
 	print_status("Done!\n");
 	return 0;
 }

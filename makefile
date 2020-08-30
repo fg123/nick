@@ -8,10 +8,10 @@ INCDIR = headers
 CFLAGS=-I $(INCDIR) -lhpdf -lxml2 -lz -lm -g -lpng
 CFLAGSNOLINK = -I $(INCDIR) -lxml2 -lhpdf -g -lpng
 
-_DEPS = view.h error.h verify.h util.h layout.h pdf.h draw.h color.h fonts.h templates.h print.h
+_DEPS = view.h error.h verify.h util.h layout.h pdf.h draw.h color.h fonts.h templates.h print.h variables.h
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
 
-_OBJ = main.o view.o error.o layout.o util.o draw.o color.o fonts.o templates.o print.o
+_OBJ = main.o view.o error.o layout.o util.o draw.o color.o fonts.o templates.o print.o variables.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: setup main
